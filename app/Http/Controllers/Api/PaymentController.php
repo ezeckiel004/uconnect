@@ -235,6 +235,53 @@ class PaymentController extends Controller
     }
 
     /**
+     * Get all donations by the logged-in user (donor)
+     * GET /api/payments/my-donations
+     */
+    public function getDonorDonations(Request $request)
+    {
+        try {
+            $user = $request->user();
+            
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Authentication required',
+                ], Response::HTTP_UNAUTHORIZED);
+            }
+
+            $donations = Donation::where('user_id', $user->id)
+                ->with(['cagnote:id,title,objective_amount,collected_amount'])
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function ($donation) {
+                    return [
+                        'id' => $donation->id,
+                        'amount' => $donation->amount,
+                        'currency' => $donation->currency,
+                        'status' => $donation->status,
+                        'created_at' => $donation->created_at,
+                        'cagnote_id' => $donation->cagnote_id,
+                        'cagnote_title' => $donation->cagnote?->title,
+                        'association_name' => $donation->cagnote?->creator?->name ?? 'Organisation',
+                    ];
+                });
+
+            return response()->json([
+                'success' => true,
+                'data' => $donations,
+            ], Response::HTTP_OK);
+
+        } catch (\Exception $e) {
+            Log::error('Error fetching donor donations: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching donations',
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
      * Get all donations for a cagnote
      * GET /api/payments/cagnote/{id}/donations
      */

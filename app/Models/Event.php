@@ -13,6 +13,7 @@ class Event extends Model
         'location',
         'date',
         'time',
+        'registration_link',
         'photos',
         'status',
         'validated_at',

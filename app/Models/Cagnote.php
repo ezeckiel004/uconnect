@@ -12,6 +12,7 @@ class Cagnote extends Model
         'title',
         'description',
         'location',
+        'city',
         'category',
         'objective_amount',
         'collected_amount',

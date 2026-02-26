@@ -8,6 +8,8 @@ use App\Http\Controllers\Api\Admin\AdminCagnoteController;
 use App\Http\Controllers\Api\CagnoteLikeController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\EventController;
+use App\Http\Controllers\Api\ConversationController;
+use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\ForumPostController;
 use App\Http\Controllers\ForumCommentController;
 use App\Http\Controllers\ForumReplyController;
@@ -66,6 +68,9 @@ Route::prefix('cagnotes')->group(function () {
     // Public route to get all approved cagnotes
     Route::get('/approved/all', [CagnoteController::class, 'getApprovedCagnotes'])->name('cagnotes.approved.all');
     
+    // Public route to get approved cagnotes by category
+    Route::get('/category/{category}', [CagnoteController::class, 'getApprovedCagnotesByCategory'])->name('cagnotes.category');
+    
     // Protected routes (authentication required)
     Route::middleware('auth:api')->group(function () {
         Route::get('/', [CagnoteController::class, 'index'])->name('cagnotes.index');
@@ -97,6 +102,7 @@ Route::prefix('payments')->group(function () {
         Route::post('intent', [PaymentController::class, 'createPaymentIntent'])->name('payments.create-intent');
         Route::post('confirm', [PaymentController::class, 'confirmPayment'])->name('payments.confirm');
         Route::get('donation/{id}', [PaymentController::class, 'getDonation'])->name('payments.get-donation');
+        Route::get('my-donations', [PaymentController::class, 'getDonorDonations'])->name('payments.donor-donations');
     });
 });
 
@@ -142,4 +148,19 @@ Route::prefix('forum')->group(function () {
         Route::delete('/replies/{id}', [ForumReplyController::class, 'destroy'])->name('forum.replies.destroy');
         Route::post('/replies/{id}/like', [ForumReplyController::class, 'toggleLike'])->name('forum.replies.like');
     });
+});
+
+// Messages routes (only for associations)
+Route::prefix('messages')->middleware('auth:api')->group(function () {
+    // Conversations routes
+    Route::get('/conversations', [ConversationController::class, 'index'])->name('messages.conversations.index');
+    Route::post('/conversations', [ConversationController::class, 'store'])->name('messages.conversations.store');
+    Route::get('/conversations/search', [ConversationController::class, 'search'])->name('messages.conversations.search');
+    Route::get('/conversations/{id}', [ConversationController::class, 'show'])->name('messages.conversations.show');
+    Route::delete('/conversations/{id}', [ConversationController::class, 'destroy'])->name('messages.conversations.destroy');
+
+    // Messages routes
+    Route::post('/', [MessageController::class, 'store'])->name('messages.store');
+    Route::get('/', [MessageController::class, 'index'])->name('messages.index');
+    Route::delete('/{id}', [MessageController::class, 'destroy'])->name('messages.destroy');
 });

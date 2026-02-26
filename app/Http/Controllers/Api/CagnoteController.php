@@ -71,6 +71,7 @@ class CagnoteController extends Controller
                 'title' => 'required|string|max:255',
                 'description' => 'nullable|string',
                 'location' => 'nullable|string|max:255',
+                'city' => 'nullable|string|max:255',
                 'category' => 'nullable|string|in:Infrastructure,Santé,Éducation,Alimentation,Eau et assainissement',
                 'objective_amount' => 'required|numeric|min:0.01',
                 'start_date' => 'nullable|date',
@@ -107,6 +108,7 @@ class CagnoteController extends Controller
                 'title' => $validated['title'],
                 'description' => $validated['description'] ?? null,
                 'location' => $validated['location'] ?? null,
+                'city' => $validated['city'] ?? null,
                 'category' => $validated['category'] ?? 'Infrastructure',
                 'objective_amount' => $validated['objective_amount'],
                 'start_date' => $validated['start_date'] ?? null,
@@ -234,6 +236,7 @@ class CagnoteController extends Controller
                 'title' => 'sometimes|string|max:255',
                 'description' => 'nullable|string',
                 'location' => 'nullable|string|max:255',
+                'city' => 'nullable|string|max:255',
                 'category' => 'nullable|string|in:Infrastructure,Santé,Éducation,Alimentation,Eau et assainissement',
                 'objective_amount' => 'sometimes|numeric|min:0.01',
                 'start_date' => 'nullable|date',
@@ -409,6 +412,37 @@ class CagnoteController extends Controller
 
         } catch (\Exception $e) {
             Log::error('Error fetching approved cagnotes: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération des cagnotes approuvées',
+                'error' => $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Get approved cagnotes by category
+     * GET /api/cagnotes/category/{category}
+     */
+    public function getApprovedCagnotesByCategory($category): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $cagnotes = Cagnote::where('publication_status', 'approved')
+                ->where('category', $category)
+                ->with('user')
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Cagnotes approuvées récupérées avec succès',
+                'data' => $cagnotes,
+                'count' => count($cagnotes),
+                'category' => $category
+            ], Response::HTTP_OK);
+
+        } catch (\Exception $e) {
+            Log::error('Error fetching approved cagnotes by category: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur lors de la récupération des cagnotes approuvées',
