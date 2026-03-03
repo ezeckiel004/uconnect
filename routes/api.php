@@ -3,10 +3,12 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\AssociationController;
 use App\Http\Controllers\Api\CagnoteController;
 use App\Http\Controllers\Api\Admin\AdminCagnoteController;
 use App\Http\Controllers\Api\CagnoteLikeController;
 use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\WithdrawalRequestController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\ConversationController;
 use App\Http\Controllers\Api\MessageController;
@@ -106,6 +108,22 @@ Route::prefix('payments')->group(function () {
     });
 });
 
+// Withdrawal Requests routes
+Route::prefix('withdrawal-requests')->group(function () {
+    // Protected routes (authentication required)
+    Route::middleware('auth:api')->group(function () {
+        Route::get('/', [WithdrawalRequestController::class, 'index'])->name('withdrawal-requests.index');
+        Route::get('/{id}', [WithdrawalRequestController::class, 'show'])->name('withdrawal-requests.show');
+    });
+});
+
+// Admin Withdrawal Requests routes
+Route::prefix('admin/withdrawal-requests')->middleware('auth:api')->group(function () {
+    Route::get('/', [WithdrawalRequestController::class, 'adminIndex'])->name('admin.withdrawal-requests.index');
+    Route::patch('/{id}/process', [WithdrawalRequestController::class, 'processWithdrawal'])->name('admin.withdrawal-requests.process');
+    Route::patch('/{id}/reject', [WithdrawalRequestController::class, 'rejectWithdrawal'])->name('admin.withdrawal-requests.reject');
+});
+
 // Events routes
 Route::prefix('events')->group(function () {
     // Public route to get all approved events
@@ -163,4 +181,10 @@ Route::prefix('messages')->middleware('auth:api')->group(function () {
     Route::post('/', [MessageController::class, 'store'])->name('messages.store');
     Route::get('/', [MessageController::class, 'index'])->name('messages.index');
     Route::delete('/{id}', [MessageController::class, 'destroy'])->name('messages.destroy');
+});
+
+// Associations routes (public - for Explorer page)
+Route::prefix('associations')->group(function () {
+    Route::get('/by-country', [AssociationController::class, 'getAssociationsByCountry'])->name('associations.by-country');
+    Route::get('/{associationId}/campaigns', [AssociationController::class, 'getAssociationCampaigns'])->name('associations.campaigns');
 });

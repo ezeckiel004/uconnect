@@ -26,6 +26,9 @@ class User extends Authenticatable
         'code',
         'phone_number',
         'description',
+        'logo_path',
+        'category',
+        'country',
         'first_login',
     ];
 

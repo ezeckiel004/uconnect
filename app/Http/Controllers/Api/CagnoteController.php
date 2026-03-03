@@ -72,13 +72,30 @@ class CagnoteController extends Controller
                 'description' => 'nullable|string',
                 'location' => 'nullable|string|max:255',
                 'city' => 'nullable|string|max:255',
-                'category' => 'nullable|string|in:Infrastructure,Santé,Éducation,Alimentation,Eau et assainissement',
+                'category' => 'nullable|string|in:Nourriture,Eau,Infrastructure,Santé,Sociale,SOS',
                 'objective_amount' => 'required|numeric|min:0.01',
                 'start_date' => 'nullable|date',
                 'deadline' => 'nullable|date|after:today',
                 'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
                 'photos' => 'nullable|array',
                 'photos.*' => 'nullable|string',
+                // Banking information
+                'account_holder_name' => 'nullable|string|max:255',
+                'iban' => 'nullable|string|max:34',
+                'bic' => 'nullable|string|max:11',
+                'bank_name' => 'nullable|string|max:255',
+                'account_type' => 'nullable|string|in:individual,association,company,other',
+                'account_address' => 'nullable|string',
+                'account_phone' => 'nullable|string|max:20',
+                'account_email' => 'nullable|email',
+            ]);
+
+            // Log validated data for debugging
+            Log::info('Cagnote store - Validated data:', [
+                'title' => $validated['title'],
+                'category' => $validated['category'] ?? 'null',
+                'location' => $validated['location'] ?? 'null',
+                'city' => $validated['city'] ?? 'null',
             ]);
 
             $imageUrl = null;
@@ -109,7 +126,7 @@ class CagnoteController extends Controller
                 'description' => $validated['description'] ?? null,
                 'location' => $validated['location'] ?? null,
                 'city' => $validated['city'] ?? null,
-                'category' => $validated['category'] ?? 'Infrastructure',
+                'category' => $validated['category'] ?? 'Nourriture',
                 'objective_amount' => $validated['objective_amount'],
                 'start_date' => $validated['start_date'] ?? null,
                 'deadline' => $validated['deadline'] ?? null,
@@ -118,6 +135,15 @@ class CagnoteController extends Controller
                 'collected_amount' => 0,
                 'status' => 'active',
                 'publication_status' => 'pending',
+                // Banking information
+                'account_holder_name' => $validated['account_holder_name'] ?? null,
+                'iban' => $validated['iban'] ?? null,
+                'bic' => $validated['bic'] ?? null,
+                'bank_name' => $validated['bank_name'] ?? null,
+                'account_type' => $validated['account_type'] ?? null,
+                'account_address' => $validated['account_address'] ?? null,
+                'account_phone' => $validated['account_phone'] ?? null,
+                'account_email' => $validated['account_email'] ?? null,
             ]);
 
             Log::info('Cagnote created: ' . $cagnote->id . ' for user ' . $user->id);
@@ -237,7 +263,7 @@ class CagnoteController extends Controller
                 'description' => 'nullable|string',
                 'location' => 'nullable|string|max:255',
                 'city' => 'nullable|string|max:255',
-                'category' => 'nullable|string|in:Infrastructure,Santé,Éducation,Alimentation,Eau et assainissement',
+                'category' => 'nullable|string|in:Nourriture,Eau,Infrastructure,Santé,Sociale,SOS',
                 'objective_amount' => 'sometimes|numeric|min:0.01',
                 'start_date' => 'nullable|date',
                 'deadline' => 'nullable|date|after:today',
@@ -245,6 +271,15 @@ class CagnoteController extends Controller
                 'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
                 'photos' => 'nullable|array',
                 'photos.*' => 'nullable|string',
+                // Banking information
+                'account_holder_name' => 'nullable|string|max:255',
+                'iban' => 'nullable|string|max:34',
+                'bic' => 'nullable|string|max:11',
+                'bank_name' => 'nullable|string|max:255',
+                'account_type' => 'nullable|string|in:individual,association,company,other',
+                'account_address' => 'nullable|string',
+                'account_phone' => 'nullable|string|max:20',
+                'account_email' => 'nullable|email',
             ]);
 
             if ($request->hasFile('image')) {

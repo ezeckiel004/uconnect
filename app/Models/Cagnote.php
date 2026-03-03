@@ -25,6 +25,17 @@ class Cagnote extends Model
         'validated_at',
         'validated_by',
         'rejection_reason',
+        // Banking information
+        'account_holder_name',
+        'iban',
+        'bic',
+        'bank_name',
+        'account_type',
+        'account_address',
+        'account_phone',
+        'account_email',
+        'banking_verified',
+        'banking_verified_at',
     ];
 
     protected $casts = [
@@ -33,7 +44,9 @@ class Cagnote extends Model
         'start_date' => 'date',
         'deadline' => 'date',
         'validated_at' => 'datetime',
+        'banking_verified_at' => 'datetime',
         'photos' => 'array',
+        'banking_verified' => 'boolean',
     ];
 
     /**
@@ -58,6 +71,14 @@ class Cagnote extends Model
     public function donations()
     {
         return $this->hasMany(Donation::class);
+    }
+
+    /**
+     * Get the withdrawal requests for this cagnote
+     */
+    public function withdrawalRequests()
+    {
+        return $this->hasMany(WithdrawalRequest::class);
     }
 
     /**

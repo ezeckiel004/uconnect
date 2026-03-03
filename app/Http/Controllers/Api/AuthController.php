@@ -335,7 +335,24 @@ class AuthController extends Controller
                 'email' => 'required|email|unique:users,email',
                 'phone_number' => 'nullable|string',
                 'description' => 'nullable|string',
+                'category' => 'required|in:Nourriture,Eau,Infrastructure,Santé,Sociale,SOS',
+                'country' => 'required|string|max:255',
+                'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             ]);
+
+            $logoPath = null;
+            
+            // Handle logo upload
+            if ($request->hasFile('logo')) {
+                try {
+                    $logoFile = $request->file('logo');
+                    $logoPath = $logoFile->store('logos/associations', 'public');
+                    Log::info('Logo saved', ['path' => $logoPath]);
+                } catch (\Exception $e) {
+                    Log::error('Logo upload failed', ['error' => $e->getMessage()]);
+                    // Continue without logo if upload fails
+                }
+            }
 
             $user = User::create([
                 'name' => $validated['name'],
@@ -343,6 +360,9 @@ class AuthController extends Controller
                 'type' => 'association',
                 'phone_number' => $validated['phone_number'] ?? null,
                 'description' => $validated['description'] ?? null,
+                'category' => $validated['category'],
+                'country' => $validated['country'],
+                'logo_path' => $logoPath,
                 // code and password will be set by admin later
             ]);
 
@@ -358,6 +378,9 @@ class AuthController extends Controller
                         'code' => $user->code,
                         'phone_number' => $user->phone_number,
                         'description' => $user->description,
+                        'category' => $user->category,
+                        'country' => $user->country,
+                        'logo_path' => $user->logo_path,
                     ],
                 ]
             ], Response::HTTP_CREATED);
