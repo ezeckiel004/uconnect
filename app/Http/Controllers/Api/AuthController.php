@@ -162,6 +162,7 @@ class AuthController extends Controller
     }
 
     /**
+    /**
      * Get Authenticated User
      * GET /api/auth/user
      */
@@ -187,6 +188,10 @@ class AuthController extends Controller
                     'code' => $user->code,
                     'phone_number' => $user->phone_number,
                     'description' => $user->description,
+                    'logo_path' => $user->logo_path,
+                    'category' => $user->category,
+                    'country' => $user->country,
+                    'first_login' => $user->first_login,
                 ]
             ], Response::HTTP_OK);
 
