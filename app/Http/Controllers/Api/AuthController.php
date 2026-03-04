@@ -728,38 +728,13 @@ class AuthController extends Controller
                 ], Response::HTTP_UNAUTHORIZED);
             }
 
-            // Log raw request data
-            Log::info('🔍 RAW REQUEST DATA:', [
-                'method' => $request->method(),
-                'content_type' => $request->header('Content-Type'),
+            Log::info('🔍 UPDATE REQUEST RECEIVED', [
                 'user_id' => $user->id,
-                'has_file_logo_path' => $request->hasFile('logo_path'),
-                'all_files' => $request->files->keys(),
-                'all_inputs' => $request->keys(),
+                'request_keys' => $request->keys(),
+                'request_all' => $request->all(),
             ]);
 
-            // Log request()->all()
-            Log::info('📋 REQUEST ALL:', [
-                'data' => $request->all(),
-            ]);
-
-            // Log request()->input() for debugging
-            Log::info('📝 REQUEST INPUT DETAILS:', [
-                'name' => $request->input('name'),
-                'phone_number' => $request->input('phone_number'),
-                'description' => $request->input('description'),
-                'category' => $request->input('category'),
-                'country' => $request->input('country'),
-                'code' => $request->input('code'),
-            ]);
-
-            Log::info('Update request received', [
-                'user_id' => $user->id,
-                'has_file' => $request->hasFile('logo_path'),
-                'request_data' => $request->all(),
-            ]);
-
-            // Validate the input - logo_path file is optional
+            // Validate the input - logo fields are optional
             $validated = $request->validate([
                 'name' => 'sometimes|string|max:255',
                 'phone_number' => 'sometimes|nullable|string|max:20',
@@ -767,74 +742,73 @@ class AuthController extends Controller
                 'category' => 'sometimes|nullable|string|max:255',
                 'country' => 'sometimes|nullable|string|max:255',
                 'code' => 'sometimes|nullable|string|max:255',
-                'logo_path' => 'sometimes|nullable|file|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+                'logo_base64' => 'sometimes|nullable|string',
+                'logo_filename' => 'sometimes|nullable|string',
             ]);
 
-            Log::info('Validation passed', [
+            Log::info('✅ Validation passed', [
                 'user_id' => $user->id,
                 'validated_keys' => array_keys($validated),
-                'validated_data' => $validated,
             ]);
 
-            // Handle logo upload
-            if ($request->hasFile('logo_path')) {
+            // Handle logo upload from base64
+            if ($request->has('logo_base64') && $request->has('logo_filename')) {
                 try {
-                    $file = $request->file('logo_path');
+                    $base64String = $request->input('logo_base64');
+                    $filename = $request->input('logo_filename');
                     
-                    Log::info('🖼️ Logo file received', [
-                        'original_name' => $file->getClientOriginalName(),
-                        'size' => $file->getSize(),
-                        'mime' => $file->getMimeType(),
+                    Log::info('🖼️ Processing logo from base64', [
                         'user_id' => $user->id,
+                        'filename' => $filename,
+                        'base64_length' => strlen($base64String),
                     ]);
 
                     // Create directory if it doesn't exist
                     $storagePath = 'public/logos';
                     if (!file_exists(storage_path($storagePath))) {
                         mkdir(storage_path($storagePath), 0755, true);
-                        Log::info('Created logos directory', ['path' => storage_path($storagePath)]);
+                        Log::info('✅ Created logos directory', ['path' => storage_path($storagePath)]);
                     }
 
-                    // Generate filename with timestamp
+                    // Decode base64
+                    $decodedBytes = base64_decode($base64String, true);
+                    
+                    if ($decodedBytes === false) {
+                        throw new \Exception('Invalid base64 string');
+                    }
+
+                    Log::info('✅ Base64 decoded', [
+                        'decoded_size' => strlen($decodedBytes),
+                    ]);
+
+                    // Generate unique filename
                     $timestamp = time();
-                    $extension = $file->getClientOriginalExtension();
-                    $filename = 'logo_' . $user->id . '_' . $timestamp . '.' . $extension;
+                    $extension = pathinfo($filename, PATHINFO_EXTENSION);
+                    $newFilename = 'logo_' . $user->id . '_' . $timestamp . '.' . $extension;
                     
-                    Log::info('Generated filename', [
-                        'filename' => $filename,
-                        'timestamp' => $timestamp,
-                    ]);
+                    // Write file to disk
+                    $fullPath = storage_path($storagePath . '/' . $newFilename);
+                    file_put_contents($fullPath, $decodedBytes);
                     
-                    // Store the file
-                    $path = $file->storeAs($storagePath, $filename);
-                    
-                    if (!$path) {
-                        throw new \Exception('Failed to store file: storeAs returned false');
+                    if (!file_exists($fullPath)) {
+                        throw new \Exception('Failed to write file to disk');
                     }
 
-                    Log::info('✅ File stored successfully', [
-                        'storage_path' => $path,
-                        'user_id' => $user->id,
+                    Log::info('✅ File saved to disk', [
+                        'full_path' => $fullPath,
+                        'file_size' => filesize($fullPath),
                     ]);
 
-                    // Create the public URL path
-                    $publicPath = str_replace('public/', '', $path);
-                    $logoUrl = '/storage/' . $publicPath;
-                    
-                    Log::info('Generated public URL', [
-                        'public_url' => $logoUrl,
-                        'public_path' => $publicPath,
-                    ]);
-                    
-                    // Update the validated data with the new logo path
+                    // Generate public URL
+                    $logoUrl = '/storage/logos/' . $newFilename;
                     $validated['logo_path'] = $logoUrl;
 
-                    Log::info('Updated validated with logo_path', [
-                        'logo_path' => $logoUrl,
+                    Log::info('✅ Logo URL generated', [
+                        'logo_url' => $logoUrl,
                     ]);
 
                 } catch (\Exception $e) {
-                    Log::error('❌ Error uploading logo', [
+                    Log::error('❌ Error processing logo', [
                         'user_id' => $user->id,
                         'error' => $e->getMessage(),
                         'file' => $e->getFile(),
@@ -843,33 +817,37 @@ class AuthController extends Controller
                     
                     return response()->json([
                         'success' => false,
-                        'message' => 'Erreur lors de l\'upload de l\'image',
+                        'message' => 'Erreur lors du traitement du logo',
                         'error' => $e->getMessage()
                     ], Response::HTTP_INTERNAL_SERVER_ERROR);
                 }
             }
 
-            Log::info('Before update - validated data', [
+            // Remove base64 fields from validated before updating
+            unset($validated['logo_base64']);
+            unset($validated['logo_filename']);
+
+            Log::info('📝 Before database update', [
                 'user_id' => $user->id,
-                'validated' => $validated,
+                'validated_data' => $validated,
             ]);
 
             // Update only the provided fields
             $updateResult = $user->update($validated);
 
-            Log::info('After update', [
+            Log::info('✅ Database update successful', [
                 'user_id' => $user->id,
                 'update_result' => $updateResult,
-                'user_logo_path' => $user->logo_path,
-                'updated_fields' => array_keys($validated),
             ]);
 
             // Refresh user from database
             $user->refresh();
 
-            Log::info('User profile updated successfully', [
+            Log::info('✅ User refreshed from database', [
                 'user_id' => $user->id,
-                'logo_path_after_refresh' => $user->logo_path,
+                'logo_path' => $user->logo_path,
+                'name' => $user->name,
+                'phone_number' => $user->phone_number,
             ]);
 
             return response()->json([
@@ -891,9 +869,9 @@ class AuthController extends Controller
             ], Response::HTTP_OK);
 
         } catch (ValidationException $e) {
-            Log::warning('⚠️ Validation failed on update', [
-                'errors' => $e->errors(),
+            Log::warning('⚠️ Validation failed', [
                 'user_id' => $request->user()?->id,
+                'errors' => $e->errors(),
             ]);
             
             return response()->json([
@@ -902,7 +880,7 @@ class AuthController extends Controller
                 'errors' => $e->errors()
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         } catch (\Exception $e) {
-            Log::error('❌ Error updating user profile', [
+            Log::error('❌ Unexpected error in update', [
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
@@ -911,7 +889,7 @@ class AuthController extends Controller
             
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de la mise à jour du profil',
+                'message' => 'Erreur lors de la mise à jour',
                 'error' => $e->getMessage()
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
