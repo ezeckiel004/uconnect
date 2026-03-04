@@ -705,5 +705,69 @@ class AuthController extends Controller
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
+
+    /**
+     * Update User Profile
+     * PUT /api/auth/user
+     * Protected: auth:api
+     */
+    public function update(Request $request): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $user = $request->user();
+
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Utilisateur non authentifié'
+                ], Response::HTTP_UNAUTHORIZED);
+            }
+
+            // Validate the input
+            $validated = $request->validate([
+                'name' => 'sometimes|required|string|max:255',
+                'phone_number' => 'sometimes|nullable|string|max:20',
+                'description' => 'sometimes|nullable|string|max:1000',
+                'category' => 'sometimes|nullable|string|max:255',
+                'country' => 'sometimes|nullable|string|max:255',
+            ]);
+
+            // Update only the provided fields
+            $user->update($validated);
+
+            Log::info('User profile updated', ['user_id' => $user->id]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Profil mis à jour avec succès',
+                'data' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'type' => $user->type,
+                    'code' => $user->code,
+                    'phone_number' => $user->phone_number,
+                    'description' => $user->description,
+                    'logo_path' => $user->logo_path,
+                    'category' => $user->category,
+                    'country' => $user->country,
+                    'first_login' => $user->first_login,
+                ]
+            ], Response::HTTP_OK);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation échouée',
+                'errors' => $e->errors()
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la mise à jour du profil',
+                'error' => $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
 }
 

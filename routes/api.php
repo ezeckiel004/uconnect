@@ -40,6 +40,7 @@ Route::prefix('auth')->group(function () {
     // Protected routes (authentication required)
     Route::middleware('auth:api')->group(function () {
         Route::get('/user', [AuthController::class, 'user'])->name('auth.user');
+        Route::put('/user', [AuthController::class, 'update'])->name('auth.update');
         Route::post('/logout', [AuthController::class, 'logout'])->name('auth.logout');
         Route::post('/refresh', [AuthController::class, 'refreshToken'])->name('auth.refresh');
         Route::post('/change-first-login-password', [AuthController::class, 'changeFirstLoginPassword'])->name('auth.change-first-login-password');
