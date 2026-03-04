@@ -764,7 +764,7 @@ class AuthController extends Controller
                     ]);
 
                     // Create directory if it doesn't exist
-                    $storagePath = 'public/logos';
+                    $storagePath = 'app/public/logos';
                     if (!file_exists(storage_path($storagePath))) {
                         mkdir(storage_path($storagePath), 0755, true);
                         Log::info('✅ Created logos directory', ['path' => storage_path($storagePath)]);
