@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ForumComment;
 use App\Models\ForumPost;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -35,6 +36,20 @@ class ForumCommentController extends Controller
             $comment->content = $validated['content'];
             $comment->likes = 0;
             $comment->save();
+
+            // Create notification for the post author
+            $currentUser = Auth::user();
+            if ($post->user_id && $post->user_id !== Auth::id()) {
+                Notification::create([
+                    'user_id' => $post->user_id,
+                    'title' => 'Nouveau commentaire sur votre sujet',
+                    'description' => $currentUser->name . ' a commenté votre sujet "' . $post->title . '"',
+                    'subtitle' => '"' . substr($validated['content'], 0, 50) . '..."',
+                    'icon' => 'forum',
+                    'action_url' => '/forum/' . $postId,
+                    'is_read' => false,
+                ]);
+            }
 
             return response()->json([
                 'success' => true,
@@ -186,6 +201,7 @@ class ForumCommentController extends Controller
                 'id' => $comment->user->id,
                 'name' => $comment->user->name,
                 'avatar' => $comment->user->avatar ?? null,
+                'logo_path' => $comment->user->logo_path ?? null,
             ] : null,
             'content' => $comment->content,
             'likes' => $comment->likes,
@@ -197,6 +213,7 @@ class ForumCommentController extends Controller
                         'id' => $reply->user->id,
                         'name' => $reply->user->name,
                         'avatar' => $reply->user->avatar ?? null,
+                        'logo_path' => $reply->user->logo_path ?? null,
                     ] : null,
                     'content' => $reply->content,
                     'likes' => $reply->likes,

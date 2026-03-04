@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ForumReply;
 use App\Models\ForumComment;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -35,6 +36,20 @@ class ForumReplyController extends Controller
             $reply->content = $validated['content'];
             $reply->likes = 0;
             $reply->save();
+
+            // Create notification for the comment author
+            $currentUser = Auth::user();
+            if ($comment->user_id && $comment->user_id !== Auth::id()) {
+                Notification::create([
+                    'user_id' => $comment->user_id,
+                    'title' => 'Nouvelle réponse à votre commentaire',
+                    'description' => $currentUser->name . ' a répondu à votre commentaire',
+                    'subtitle' => '"' . substr($validated['content'], 0, 50) . '..."',
+                    'icon' => 'forum',
+                    'action_url' => '/forum/' . $comment->forum_post_id,
+                    'is_read' => false,
+                ]);
+            }
 
             return response()->json([
                 'success' => true,
@@ -186,6 +201,7 @@ class ForumReplyController extends Controller
                 'id' => $reply->user->id,
                 'name' => $reply->user->name,
                 'avatar' => $reply->user->avatar ?? null,
+                'logo_path' => $reply->user->logo_path ?? null,
             ] : null,
             'content' => $reply->content,
             'likes' => $reply->likes,
