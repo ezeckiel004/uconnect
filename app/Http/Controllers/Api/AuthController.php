@@ -735,7 +735,25 @@ class AuthController extends Controller
                 'description' => 'sometimes|nullable|string|max:1000',
                 'category' => 'sometimes|nullable|string|max:255',
                 'country' => 'sometimes|nullable|string|max:255',
+                'logo_path' => 'sometimes|nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // Max 5MB
             ]);
+
+            // Handle logo upload
+            if ($request->hasFile('logo_path')) {
+                $file = $request->file('logo_path');
+                // Store file in public/logos directory
+                $filename = 'logo_' . $user->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+                $path = $file->storeAs('public/logos', $filename);
+                
+                // Save the public URL path
+                $validated['logo_path'] = '/storage/logos/' . $filename;
+                
+                Log::info('Logo uploaded for user', [
+                    'user_id' => $user->id,
+                    'filename' => $filename,
+                    'path' => $path
+                ]);
+            }
 
             // Update only the provided fields
             $user->update($validated);
