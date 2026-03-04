@@ -728,6 +728,31 @@ class AuthController extends Controller
                 ], Response::HTTP_UNAUTHORIZED);
             }
 
+            // Log raw request data
+            Log::info('🔍 RAW REQUEST DATA:', [
+                'method' => $request->method(),
+                'content_type' => $request->header('Content-Type'),
+                'user_id' => $user->id,
+                'has_file_logo_path' => $request->hasFile('logo_path'),
+                'all_files' => $request->files->keys(),
+                'all_inputs' => $request->keys(),
+            ]);
+
+            // Log request()->all()
+            Log::info('📋 REQUEST ALL:', [
+                'data' => $request->all(),
+            ]);
+
+            // Log request()->input() for debugging
+            Log::info('📝 REQUEST INPUT DETAILS:', [
+                'name' => $request->input('name'),
+                'phone_number' => $request->input('phone_number'),
+                'description' => $request->input('description'),
+                'category' => $request->input('category'),
+                'country' => $request->input('country'),
+                'code' => $request->input('code'),
+            ]);
+
             Log::info('Update request received', [
                 'user_id' => $user->id,
                 'has_file' => $request->hasFile('logo_path'),
@@ -748,6 +773,7 @@ class AuthController extends Controller
             Log::info('Validation passed', [
                 'user_id' => $user->id,
                 'validated_keys' => array_keys($validated),
+                'validated_data' => $validated,
             ]);
 
             // Handle logo upload
