@@ -728,37 +728,78 @@ class AuthController extends Controller
                 ], Response::HTTP_UNAUTHORIZED);
             }
 
-            // Validate the input
+            // Validate the input - logo_path file is optional
             $validated = $request->validate([
                 'name' => 'sometimes|required|string|max:255',
                 'phone_number' => 'sometimes|nullable|string|max:20',
                 'description' => 'sometimes|nullable|string|max:1000',
                 'category' => 'sometimes|nullable|string|max:255',
                 'country' => 'sometimes|nullable|string|max:255',
-                'logo_path' => 'sometimes|nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // Max 5MB
+                'logo_path' => 'sometimes|nullable|file|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             ]);
 
             // Handle logo upload
             if ($request->hasFile('logo_path')) {
-                $file = $request->file('logo_path');
-                // Store file in public/logos directory
-                $filename = 'logo_' . $user->id . '_' . time() . '.' . $file->getClientOriginalExtension();
-                $path = $file->storeAs('public/logos', $filename);
-                
-                // Save the public URL path
-                $validated['logo_path'] = '/storage/logos/' . $filename;
-                
-                Log::info('Logo uploaded for user', [
-                    'user_id' => $user->id,
-                    'filename' => $filename,
-                    'path' => $path
-                ]);
+                try {
+                    $file = $request->file('logo_path');
+                    
+                    Log::info('Logo file received', [
+                        'original_name' => $file->getClientOriginalName(),
+                        'size' => $file->getSize(),
+                        'mime' => $file->getMimeType(),
+                    ]);
+
+                    // Create directory if it doesn't exist
+                    $storagePath = 'public/logos';
+                    if (!file_exists(storage_path($storagePath))) {
+                        mkdir(storage_path($storagePath), 0755, true);
+                    }
+
+                    // Generate filename
+                    $filename = 'logo_' . $user->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+                    
+                    // Store the file directly
+                    $path = $file->storeAs($storagePath, $filename);
+                    
+                    if (!$path) {
+                        throw new \Exception('Failed to store file');
+                    }
+
+                    // Create the public URL path
+                    $publicPath = str_replace('public/', '', $path);
+                    $logoUrl = '/storage/' . $publicPath;
+                    
+                    // Update the validated data with the new logo path
+                    $validated['logo_path'] = $logoUrl;
+
+                    Log::info('Logo successfully uploaded', [
+                        'user_id' => $user->id,
+                        'filename' => $filename,
+                        'storage_path' => $path,
+                        'public_url' => $logoUrl,
+                    ]);
+
+                } catch (\Exception $e) {
+                    Log::error('Error uploading logo', [
+                        'user_id' => $user->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                    
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Erreur lors de l\'upload de l\'image',
+                        'error' => $e->getMessage()
+                    ], Response::HTTP_INTERNAL_SERVER_ERROR);
+                }
             }
 
             // Update only the provided fields
             $user->update($validated);
 
-            Log::info('User profile updated', ['user_id' => $user->id]);
+            Log::info('User profile updated', [
+                'user_id' => $user->id,
+                'updated_fields' => array_keys($validated),
+            ]);
 
             return response()->json([
                 'success' => true,
@@ -779,12 +820,21 @@ class AuthController extends Controller
             ], Response::HTTP_OK);
 
         } catch (ValidationException $e) {
+            Log::warning('Validation failed on update', [
+                'errors' => $e->errors(),
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Validation échouée',
                 'errors' => $e->errors()
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         } catch (\Exception $e) {
+            Log::error('Error updating user profile', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur lors de la mise à jour du profil',
