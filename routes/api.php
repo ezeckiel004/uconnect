@@ -14,7 +14,7 @@ use App\Http\Controllers\Api\ConversationController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\ForumPostController;
 use App\Http\Controllers\ForumCommentController;
-use App\Http\Controllers\ForumReplyController;
+use App\Http\Controllers\Api\NotificationController;
 
 Route::prefix('auth')->group(function () {
     // Public routes (no authentication required)
@@ -188,4 +188,12 @@ Route::prefix('messages')->middleware('auth:api')->group(function () {
 Route::prefix('associations')->group(function () {
     Route::get('/by-country', [AssociationController::class, 'getAssociationsByCountry'])->name('associations.by-country');
     Route::get('/{associationId}/campaigns', [AssociationController::class, 'getAssociationCampaigns'])->name('associations.campaigns');
+});
+
+// Notifications routes (protected)
+Route::prefix('notifications')->middleware('auth:api')->group(function () {
+    Route::get('/', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/unread-count', [NotificationController::class, 'getUnreadCount'])->name('notifications.unread-count');
+    Route::post('/{id}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
+    Route::post('/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-as-read');
 });
