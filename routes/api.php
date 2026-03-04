@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\ConversationController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\ForumPostController;
 use App\Http\Controllers\ForumCommentController;
+use App\Http\Controllers\ForumReplyController;
 use App\Http\Controllers\Api\NotificationController;
 
 Route::prefix('auth')->group(function () {
