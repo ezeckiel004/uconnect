@@ -38,19 +38,38 @@ class Cagnote extends Model
         'banking_verified_at',
     ];
 
-    protected $casts = [
-        'objective_amount' => 'decimal:2',
-        'collected_amount' => 'decimal:2',
-        'start_date' => 'date',
-        'deadline' => 'date',
-        'validated_at' => 'datetime',
-        'banking_verified_at' => 'datetime',
-        'photos' => 'array',
-        'banking_verified' => 'boolean',
+    protected $hidden = [
+        //
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'objective_amount' => 'decimal:2',
+            'collected_amount' => 'decimal:2',
+            'start_date' => 'date',
+            'deadline' => 'date',
+            'validated_at' => 'datetime',
+            'banking_verified_at' => 'datetime',
+            'photos' => 'array',
+            'banking_verified' => 'boolean',
+        ];
+    }
+
     /**
-     * Get the user that owns the cagnote
+     * Get the image URL with absolute path
+     */
+    public function getImageUrlAttribute()
+    {
+        $url = $this->attributes['image_url'] ?? '';
+        if ($url && !str_starts_with($url, 'http')) {
+            $url = config('app.url') . '/' . ltrim($url, '/');
+        }
+        return $url;
+    }
+
+    /**
+     * Get the user relationship with logo URL
      */
     public function user()
     {
