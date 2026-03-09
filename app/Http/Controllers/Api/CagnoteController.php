@@ -438,11 +438,47 @@ class CagnoteController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->get();
 
+            $baseUrl = config('app.url');
+
+            $data = $cagnotes->map(function ($cagnote) use ($baseUrl) {
+                $imageUrl = $cagnote->image_url;
+                if (!str_starts_with($imageUrl, 'http')) {
+                    $imageUrl = $baseUrl . '/' . ltrim($imageUrl, '/');
+                }
+
+                $logoPath = '';
+                if ($cagnote->user?->logo_path) {
+                    $logoPath = $cagnote->user->logo_path;
+                    if (!str_starts_with($logoPath, 'http')) {
+                        $logoPath = $baseUrl . '/' . ltrim($logoPath, '/');
+                    }
+                }
+
+                return [
+                    'id' => $cagnote->id,
+                    'title' => $cagnote->title,
+                    'description' => $cagnote->description,
+                    'category' => $cagnote->category,
+                    'location' => $cagnote->location,
+                    'city' => $cagnote->city,
+                    'objective_amount' => (float)$cagnote->objective_amount,
+                    'collected_amount' => (float)$cagnote->collected_amount,
+                    'start_date' => $cagnote->start_date,
+                    'deadline' => $cagnote->deadline,
+                    'image_url' => $imageUrl,
+                    'organizer' => $cagnote->user?->name ?? 'Unknown',
+                    'organizer_logo_path' => $logoPath,
+                    'publication_status' => $cagnote->publication_status,
+                    'created_at' => $cagnote->created_at,
+                    'updated_at' => $cagnote->updated_at,
+                ];
+            });
+
             return response()->json([
                 'success' => true,
                 'message' => 'Cagnotes approuvées récupérées avec succès',
-                'data' => $cagnotes,
-                'count' => count($cagnotes)
+                'data' => $data,
+                'count' => count($data)
             ], Response::HTTP_OK);
 
         } catch (\Exception $e) {
@@ -468,11 +504,47 @@ class CagnoteController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->get();
 
+            $baseUrl = config('app.url');
+
+            $data = $cagnotes->map(function ($cagnote) use ($baseUrl) {
+                $imageUrl = $cagnote->image_url;
+                if (!str_starts_with($imageUrl, 'http')) {
+                    $imageUrl = $baseUrl . '/' . ltrim($imageUrl, '/');
+                }
+
+                $logoPath = '';
+                if ($cagnote->user?->logo_path) {
+                    $logoPath = $cagnote->user->logo_path;
+                    if (!str_starts_with($logoPath, 'http')) {
+                        $logoPath = $baseUrl . '/' . ltrim($logoPath, '/');
+                    }
+                }
+
+                return [
+                    'id' => $cagnote->id,
+                    'title' => $cagnote->title,
+                    'description' => $cagnote->description,
+                    'category' => $cagnote->category,
+                    'location' => $cagnote->location,
+                    'city' => $cagnote->city,
+                    'objective_amount' => (float)$cagnote->objective_amount,
+                    'collected_amount' => (float)$cagnote->collected_amount,
+                    'start_date' => $cagnote->start_date,
+                    'deadline' => $cagnote->deadline,
+                    'image_url' => $imageUrl,
+                    'organizer' => $cagnote->user?->name ?? 'Unknown',
+                    'organizer_logo_path' => $logoPath,
+                    'publication_status' => $cagnote->publication_status,
+                    'created_at' => $cagnote->created_at,
+                    'updated_at' => $cagnote->updated_at,
+                ];
+            });
+
             return response()->json([
                 'success' => true,
                 'message' => 'Cagnotes approuvées récupérées avec succès',
-                'data' => $cagnotes,
-                'count' => count($cagnotes),
+                'data' => $data,
+                'count' => count($data),
                 'category' => $category
             ], Response::HTTP_OK);
 
