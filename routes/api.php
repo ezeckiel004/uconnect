@@ -100,12 +100,13 @@ Route::prefix('payments')->group(function () {
     // Public routes (no authentication required)
     Route::get('cagnote/{cagnoteId}/donations', [PaymentController::class, 'getCagnoteDonations'])->name('payments.cagnote-donations');
     Route::post('webhook', [PaymentController::class, 'handleWebhook'])->name('payments.webhook');
+    // Allow guests to create payment intent and confirm payment
+    Route::post('intent', [PaymentController::class, 'createPaymentIntent'])->name('payments.create-intent');
+    Route::post('confirm', [PaymentController::class, 'confirmPayment'])->name('payments.confirm');
+    Route::get('donation/{id}', [PaymentController::class, 'getDonation'])->name('payments.get-donation');
 
     // Protected routes (authentication required)
     Route::middleware('auth:api')->group(function () {
-        Route::post('intent', [PaymentController::class, 'createPaymentIntent'])->name('payments.create-intent');
-        Route::post('confirm', [PaymentController::class, 'confirmPayment'])->name('payments.confirm');
-        Route::get('donation/{id}', [PaymentController::class, 'getDonation'])->name('payments.get-donation');
         Route::get('my-donations', [PaymentController::class, 'getDonorDonations'])->name('payments.donor-donations');
     });
 });
