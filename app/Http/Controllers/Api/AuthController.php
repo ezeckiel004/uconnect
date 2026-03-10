@@ -894,5 +894,193 @@ class AuthController extends Controller
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
+
+    /**
+     * Request password reset for donor
+     * POST /api/auth/request-password-reset
+     */
+    public function requestPasswordReset(Request $request): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'email' => 'required|email',
+            ]);
+
+            // Check if user exists and is a donor
+            $user = User::where('email', $validated['email'])
+                ->where('type', 'donor')
+                ->first();
+
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cet email n\'est pas associé à un compte donateur',
+                ], Response::HTTP_NOT_FOUND);
+            }
+
+            // Generate 6-digit code
+            $code = \App\Models\PasswordReset::generateCode();
+            
+            // Delete old reset codes for this email
+            \App\Models\PasswordReset::where('email', $validated['email'])->delete();
+            
+            // Create new reset code (valid for 15 minutes)
+            \App\Models\PasswordReset::create([
+                'email' => $validated['email'],
+                'code' => $code,
+                'expires_at' => now()->addMinutes(15),
+            ]);
+
+            // Send email with code
+            Mail::to($user->email)->send(new \App\Mail\PasswordResetNotification($code, $user->name));
+
+            Log::info('📧 Password reset code sent', [
+                'email' => $validated['email'],
+                'code' => $code
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Un code de réinitialisation a été envoyé à votre email',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Données invalides',
+                'errors' => $e->errors()
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (\Exception $e) {
+            Log::error('❌ Error in requestPasswordReset', [
+                'error' => $e->getMessage(),
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de l\'envoi du code',
+                'error' => $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Verify password reset code
+     * POST /api/auth/verify-reset-code
+     */
+    public function verifyResetCode(Request $request): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'email' => 'required|email',
+                'code' => 'required|string|size:6',
+            ]);
+
+            $resetRecord = \App\Models\PasswordReset::valid()
+                ->where('email', $validated['email'])
+                ->where('code', $validated['code'])
+                ->first();
+
+            if (!$resetRecord) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Code invalide ou expiré',
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Code validé avec succès',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Données invalides',
+                'errors' => $e->errors()
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (\Exception $e) {
+            Log::error('❌ Error in verifyResetCode', [
+                'error' => $e->getMessage(),
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la vérification',
+                'error' => $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Reset password with code
+     * POST /api/auth/reset-password
+     */
+    public function resetPassword(Request $request): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'email' => 'required|email',
+                'code' => 'required|string|size:6',
+                'password' => 'required|string|min:8|confirmed',
+            ]);
+
+            // Verify code is valid
+            $resetRecord = \App\Models\PasswordReset::valid()
+                ->where('email', $validated['email'])
+                ->where('code', $validated['code'])
+                ->first();
+
+            if (!$resetRecord) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Code invalide ou expiré',
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+
+            // Find user and update password
+            $user = User::where('email', $validated['email'])
+                ->where('type', 'donor')
+                ->first();
+
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Utilisateur non trouvé',
+                ], Response::HTTP_NOT_FOUND);
+            }
+
+            // Update password
+            $user->update([
+                'password' => Hash::make($validated['password']),
+            ]);
+
+            // Delete used reset code
+            $resetRecord->delete();
+
+            Log::info('🔐 Password reset successfully', [
+                'email' => $validated['email'],
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Mot de passe réinitialisé avec succès',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Données invalides',
+                'errors' => $e->errors()
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (\Exception $e) {
+            Log::error('❌ Error in resetPassword', [
+                'error' => $e->getMessage(),
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la réinitialisation',
+                'error' => $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
 }
+
 

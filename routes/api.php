@@ -25,6 +25,11 @@ Route::prefix('auth')->group(function () {
     Route::post('/guest', [AuthController::class, 'guestAccess'])->name('auth.guest');
     Route::post('/register-donor', [AuthController::class, 'registerDonor'])->name('auth.register-donor');
     Route::post('/register-association', [AuthController::class, 'registerAssociation'])->name('auth.register-association');
+    
+    // Password reset routes (public - no authentication required)
+    Route::post('/request-password-reset', [AuthController::class, 'requestPasswordReset'])->name('auth.request-password-reset');
+    Route::post('/verify-reset-code', [AuthController::class, 'verifyResetCode'])->name('auth.verify-reset-code');
+    Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('auth.reset-password');
 
     // Debug: Test authentication
     Route::get('/debug/auth', function (Request $request) {
