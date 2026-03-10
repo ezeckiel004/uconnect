@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 
 class ConversationController extends Controller
@@ -87,6 +88,8 @@ class ConversationController extends Controller
         }
 
         $query = $request->get('query', '');
+        Log::info('🔍 ConversationController::search - Query: "' . $query . '"');
+        Log::info('👤 Current user: ID=' . $user->id . ', Type=' . $user->type);
 
         $associations = User::where('type', 'association')
             ->where('id', '!=', $user->id)
@@ -98,6 +101,11 @@ class ConversationController extends Controller
             ->select('id', 'name', 'email', 'code', 'description')
             ->limit(20)
             ->get();
+
+        Log::info('✅ Found ' . $associations->count() . ' associations');
+        if ($associations->count() > 0) {
+            Log::info('📦 First association: ' . json_encode($associations->first()));
+        }
 
         return response()->json([
             'success' => true,
