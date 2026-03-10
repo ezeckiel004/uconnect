@@ -27,7 +27,9 @@ class OptionalAuthenticate
                 // Try to get user from API token
                 $user = Auth::guard('api')->user();
                 if ($user) {
-                    Log::info('🔐 OptionalAuthenticate - User authenticated: ID=' . $user->id . ', Name=' . $user->name);
+                    // IMPORTANT: Persist the authentication for subsequent calls
+                    Auth::setUser($user);
+                    Log::info('🔐 OptionalAuthenticate - User AUTHENTICATED and SET: ID=' . $user->id . ', Name=' . $user->name);
                 } else {
                     Log::info('🔐 OptionalAuthenticate - Token provided but no user found');
                 }
