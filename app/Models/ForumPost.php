@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class ForumPost extends Model
 {
@@ -56,9 +57,15 @@ class ForumPost extends Model
     public function isLikedByCurrentUser(): bool
     {
         $user = Auth::user();
+        Log::info('📝 isLikedByCurrentUser() - PostID: ' . $this->id . ', User: ' . ($user ? 'UserID=' . $user->id : 'NULL'));
+        
         if (!$user) {
+            Log::info('📝 isLikedByCurrentUser() - No user, returning FALSE');
             return false;
         }
-        return $this->isLikedBy($user);
+        
+        $result = $this->isLikedBy($user);
+        Log::info('📝 isLikedByCurrentUser() - PostID: ' . $this->id . ', UserID: ' . $user->id . ', Result: ' . ($result ? 'TRUE' : 'FALSE'));
+        return $result;
     }
 }

@@ -7,6 +7,7 @@ use App\Models\ForumComment;
 use App\Models\ForumReply;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 
@@ -18,6 +19,12 @@ class ForumPostController extends Controller
     public function index(Request $request)
     {
         try {
+            // Log authentication info
+            $user = Auth::user();
+            Log::info('🔐 FORUM INDEX - Auth::user() = ' . ($user ? 'User ID: ' . $user->id . ', Name: ' . $user->name : 'NULL'));
+            Log::info('🔐 FORUM INDEX - Bearer Token: ' . ($request->bearerToken() ? substr($request->bearerToken(), 0, 20) . '...' : 'NULL'));
+            Log::info('🔐 FORUM INDEX - Authorization Header: ' . ($request->hasHeader('Authorization') ? 'YES' : 'NO'));
+
             $category = $request->query('category');
             $query = ForumPost::with(['user', 'comments.user', 'comments.replies.user']);
 
@@ -26,14 +33,19 @@ class ForumPostController extends Controller
             }
 
             $posts = $query->latest()->get()->map(function ($post) {
+                $isLiked = $post->isLikedByCurrentUser();
+                Log::info('📝 POST: id=' . $post->id . ', title=' . $post->title . ', isLiked=' . ($isLiked ? 'TRUE' : 'FALSE'));
                 return $this->formatPost($post);
             });
 
+            Log::info('✅ FORUM INDEX - Returning ' . count($posts) . ' posts');
+            
             return response()->json([
                 'success' => true,
                 'data' => $posts,
             ]);
         } catch (\Exception $e) {
+            Log::error('❌ FORUM INDEX ERROR: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch forum posts: ' . $e->getMessage(),

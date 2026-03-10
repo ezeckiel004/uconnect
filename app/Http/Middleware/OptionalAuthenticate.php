@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class OptionalAuthenticate
 {
@@ -18,12 +19,20 @@ class OptionalAuthenticate
     public function handle(Request $request, Closure $next)
     {
         // Try to authenticate with API guard if Bearer token is provided
-        // But don't fail if no token is provided
+        // This allows Auth::user() to work if a valid token is provided
+        Log::info('🔐 OptionalAuthenticate - Authorization Header: ' . ($request->hasHeader('Authorization') ? 'YES' : 'NO'));
+        
         if ($request->hasHeader('Authorization')) {
             try {
-                Auth::guard('api')->authenticate();
+                // Try to get user from API token
+                $user = Auth::guard('api')->user();
+                if ($user) {
+                    Log::info('🔐 OptionalAuthenticate - User authenticated: ID=' . $user->id . ', Name=' . $user->name);
+                } else {
+                    Log::info('🔐 OptionalAuthenticate - Token provided but no user found');
+                }
             } catch (\Exception $e) {
-                // Silently fail - continue as unauthenticated
+                Log::warning('🔐 OptionalAuthenticate - Error during auth: ' . $e->getMessage());
             }
         }
 
