@@ -144,9 +144,11 @@ Route::prefix('events')->group(function () {
 
 // Forum routes
 Route::prefix('forum')->group(function () {
-    // Public routes (no authentication required)
-    Route::get('/posts', [ForumPostController::class, 'index'])->name('forum.index');
-    Route::get('/posts/{id}', [ForumPostController::class, 'show'])->name('forum.show');
+    // Public routes with optional authentication
+    Route::middleware('App\Http\Middleware\OptionalAuthenticate')->group(function () {
+        Route::get('/posts', [ForumPostController::class, 'index'])->name('forum.index');
+        Route::get('/posts/{id}', [ForumPostController::class, 'show'])->name('forum.show');
+    });
     Route::get('/posts/{id}/download', [ForumPostController::class, 'downloadFile'])->name('forum.download');
 
     // Protected routes (authentication required)
