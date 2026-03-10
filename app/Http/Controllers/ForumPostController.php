@@ -18,6 +18,22 @@ class ForumPostController extends Controller
     public function index(Request $request)
     {
         try {
+            // Try to authenticate with Bearer token from request (even if route is public)
+            // This allows Auth::user() to work even for public routes if a token is provided
+            if ($request->hasHeader('Authorization')) {
+                $token = $request->bearerToken();
+                if ($token) {
+                    // Try to find user by token
+                    $user = \App\Models\User::whereHas('tokens', function ($q) use ($token) {
+                        $q->where('token', hash('sha256', $token));
+                    })->first();
+                    
+                    if ($user) {
+                        Auth::setUser($user);
+                    }
+                }
+            }
+
             $category = $request->query('category');
             $query = ForumPost::with(['user', 'comments.user', 'comments.replies.user']);
 
@@ -107,9 +123,24 @@ class ForumPostController extends Controller
     /**
      * Display the specified forum post with its comments and replies.
      */
-    public function show(string $id)
+    public function show(string $id, Request $request)
     {
         try {
+            // Try to authenticate with Bearer token from request (even if route is public)
+            if ($request->hasHeader('Authorization')) {
+                $token = $request->bearerToken();
+                if ($token) {
+                    // Try to find user by token
+                    $user = \App\Models\User::whereHas('tokens', function ($q) use ($token) {
+                        $q->where('token', hash('sha256', $token));
+                    })->first();
+                    
+                    if ($user) {
+                        Auth::setUser($user);
+                    }
+                }
+            }
+
             $post = ForumPost::with(['user', 'comments' => function ($query) {
                 $query->with('user', 'replies.user');
             }])->find($id);
