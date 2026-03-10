@@ -314,8 +314,7 @@ class ForumPostController extends Controller
      */
     private function formatPost(ForumPost $post)
     {
-        $user = Auth::user();
-        $isLiked = $user ? $post->likedByUsers()->where('user_id', $user->id)->exists() : false;
+        $isLiked = $post->isLikedByCurrentUser();
 
         return [
             'id' => $post->id,

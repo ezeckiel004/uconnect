@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Facades\Auth;
 
 class ForumPost extends Model
 {
@@ -47,5 +48,17 @@ class ForumPost extends Model
     public function isLikedBy(User $user): bool
     {
         return $this->likedByUsers()->where('user_id', $user->id)->exists();
+    }
+
+    /**
+     * Check if the currently authenticated user has liked this post
+     */
+    public function isLikedByCurrentUser(): bool
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return false;
+        }
+        return $this->isLikedBy($user);
     }
 }
