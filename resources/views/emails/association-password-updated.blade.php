@@ -3,51 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Votre mot de passe a été mis à jour</title>
+    <title>Mot de passe mis à jour - U-Connect</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
             color: #333;
-            background-color: #f5f5f5;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             margin: 0;
-            padding: 0;
+            padding: 20px;
         }
         .container {
             max-width: 600px;
-            margin: 20px auto;
+            margin: 0 auto;
             background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
             overflow: hidden;
         }
         .header {
-            background: linear-gradient(135deg, #6B2C3E 0%, #8B3A4F 100%);
+            background: linear-gradient(135deg, #12546D 0%, #007B80 100%);
             color: #ffffff;
-            padding: 40px 30px;
+            padding: 50px 30px;
             text-align: center;
         }
         .header h1 {
             margin: 0;
-            font-size: 28px;
-            font-weight: 600;
-        }
-        .header p {
-            margin: 8px 0 0 0;
-            font-size: 14px;
-            opacity: 0.9;
+            font-size: 32px;
+            font-weight: 700;
         }
         .content {
             padding: 40px 30px;
         }
         .greeting {
-            font-size: 16px;
+            font-size: 18px;
             margin-bottom: 20px;
             color: #333;
+            line-height: 1.8;
         }
-        .alert-box {
-            background-color: #fff3cd;
-            border: 2px solid #ffc107;
+        .success-box {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border: 2px solid #28a745;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .success-box strong {
+            color: #155724;
+            font-size: 16px;
+        }
+        .info-section {
+            background-color: #f0f8ff;
+            border-left: 4px solid #007B80;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #333;
+            line-height: 1.7;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 25px 30px;
+            text-align: center;
+            border-top: 1px solid #e0e0e0;
+        }
+        .footer p {
+            margin: 6px 0;
+            font-size: 12px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>U-Connect</h1>
+            <p>Mot de Passe Mis à Jour</p>
+        </div>
+        
+        <div class="content">
+            <p class="greeting">Bonjour <strong>{{ $associationName }}</strong>,</p>
+            
+            <p>Le mot de passe de votre compte U-Connect a été mis à jour avec succès.</p>
+            
+            <div class="success-box">
+                <strong>✅ Modification confirmée</strong>
+            </div>
+            
+            <div class="info-section">
+                <strong>📌 Informations:</strong>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li style="margin: 8px 0;">Votre nouveau mot de passe est maintenant actif</li>
+                    <li style="margin: 8px 0;">Vous pouvez vous connecter immédiatement avec votre nouveau mot de passe</li>
+                    <li style="margin: 8px 0;">Conservez votre mot de passe en lieu sûr</li>
+                </ul>
+            </div>
+            
+            <p style="margin-top: 30px; line-height: 1.8;">
+                Si vous n'avez pas effectué ce changement, <strong>contactez immédiatement</strong> notre support à support@u-connect.org
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p><strong>U-Connect</strong> - Ensemble pour un monde meilleur</p>
+            <p>&copy; {{ date('Y') }} U-Connect. Tous droits réservés.</p>
+        </div>
+    </div>
+</body>
+</html>
             border-radius: 6px;
             padding: 20px;
             margin: 20px 0;

@@ -9,81 +9,85 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
             color: #333;
-            background-color: #f5f5f5;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             margin: 0;
-            padding: 0;
+            padding: 20px;
         }
         .container {
             max-width: 600px;
-            margin: 20px auto;
+            margin: 0 auto;
             background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
             overflow: hidden;
         }
         .header {
-            background: linear-gradient(135deg, #6B2C3E 0%, #8B3A4F 100%);
+            background: linear-gradient(135deg, #12546D 0%, #007B80 100%);
             color: #ffffff;
-            padding: 40px 30px;
+            padding: 50px 30px;
             text-align: center;
         }
         .header h1 {
             margin: 0;
-            font-size: 28px;
-            font-weight: 600;
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
         }
         .header p {
-            margin: 8px 0 0 0;
+            margin: 12px 0 0 0;
             font-size: 14px;
-            opacity: 0.9;
+            opacity: 0.95;
         }
         .content {
             padding: 40px 30px;
         }
         .greeting {
-            font-size: 16px;
+            font-size: 18px;
             margin-bottom: 20px;
             color: #333;
+            line-height: 1.8;
         }
         .credentials-box {
-            background-color: #f9f9f9;
-            border: 2px solid #6B2C3E;
-            border-radius: 6px;
-            padding: 20px;
-            margin: 20px 0;
+            background: linear-gradient(135deg, #f8f9fa 0%, #f0f4f8 100%);
+            border: 1px solid #e0e7ff;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 25px 0;
         }
         .credential-item {
-            margin-bottom: 15px;
+            margin-bottom: 18px;
         }
         .credential-label {
             font-size: 12px;
-            font-weight: 600;
-            color: #6B2C3E;
+            font-weight: 700;
+            color: #12546D;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
         }
         .credential-value {
             background-color: #ffffff;
-            border: 1px solid #ddd;
-            padding: 10px 12px;
-            border-radius: 4px;
+            border: 2px solid #007B80;
+            padding: 12px 14px;
+            border-radius: 6px;
             font-family: 'Courier New', monospace;
-            font-size: 14px;
+            font-size: 15px;
             word-break: break-all;
             color: #333;
+            font-weight: 600;
         }
         .info-section {
-            background-color: #eff6ff;
-            border-left: 4px solid #0066cc;
+            background-color: #f0f8ff;
+            border-left: 4px solid #007B80;
             padding: 15px;
-            margin: 20px 0;
-            border-radius: 4px;
+            margin: 25px 0;
+            border-radius: 6px;
             font-size: 14px;
             color: #333;
+            line-height: 1.7;
         }
         .info-section strong {
-            color: #0066cc;
+            color: #12546D;
         }
         .button-container {
             text-align: center;
@@ -91,96 +95,102 @@
         }
         .btn {
             display: inline-block;
-            padding: 12px 30px;
-            background-color: #6B2C3E;
+            padding: 12px 35px;
+            background-color: #007B80;
             color: #ffffff;
             text-decoration: none;
-            border-radius: 4px;
-            font-weight: 600;
+            border-radius: 6px;
+            font-weight: 700;
             font-size: 14px;
             transition: background-color 0.3s ease;
         }
         .btn:hover {
-            background-color: #8B3A4F;
+            background-color: #005f63;
         }
         .footer {
-            background-color: #f9f9f9;
-            border-top: 1px solid #eee;
-            padding: 20px 30px;
+            background-color: #f8f9fa;
+            border-top: 1px solid #e0e0e0;
+            padding: 25px 30px;
             text-align: center;
             font-size: 12px;
-            color: #666;
+            color: #999;
         }
         .footer p {
-            margin: 5px 0;
+            margin: 6px 0;
+        }
+        .security-badge {
+            display: inline-block;
+            background-color: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+            font-size: 13px;
+            color: #856404;
         }
         ul {
-            margin: 10px 0;
+            margin: 12px 0;
             padding-left: 20px;
         }
         li {
             margin: 8px 0;
+            line-height: 1.6;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
         <div class="header">
-            <h1>🎉 U-Connect</h1>
+            <h1>U-Connect</h1>
             <p>Vos identifiants d'accès</p>
         </div>
 
-        <!-- Content -->
         <div class="content">
-            <div class="greeting">
-                <p>Bonjour <strong>{{ $associationName }}</strong>,</p>
-                <p>L'administrateur de U-Connect vous a attribué des identifiants d'accès pour votre association. Ci-dessous, vous trouverez tous vos identifiants de connexion.</p>
-            </div>
+            <p class="greeting"><strong>Bienvenue {{ $associationName }}!</strong></p>
+            
+            <p>L'administrateur de U-Connect a activé votre compte. Vos identifiants de connexion sont présentés ci-dessous pour accéder à votre tableau de bord.</p>
 
-            <!-- Credentials Box -->
             <div class="credentials-box">
                 <div class="credential-item">
-                    <div class="credential-label">📌 Code d'association</div>
+                    <div class="credential-label">📌 Code Association</div>
                     <div class="credential-value">{{ $code }}</div>
                 </div>
-
                 <div class="credential-item">
-                    <div class="credential-label">🔐 Mot de passe</div>
+                    <div class="credential-label">🔐 Mot de Passe</div>
                     <div class="credential-value">{{ $password }}</div>
                 </div>
-
                 <div class="credential-item">
-                    <div class="credential-label">📧 Email</div>
+                    <div class="credential-label">📧 Adresse Email</div>
                     <div class="credential-value">{{ $email }}</div>
                 </div>
             </div>
 
-            <!-- Information Section -->
+            <div class="security-badge">
+                <strong>🔒 Conseil sécurité:</strong> Gardez vos identifiants confidentiels et modifiez votre mot de passe après la première connexion.
+            </div>
+
             <div class="info-section">
-                <strong>⚠️ Information importante :</strong>
+                <strong>ℹ️ Prochaines étapes:</strong>
                 <ul>
-                    <li>Ne partagez jamais vos identifiants avec d'autres personnes</li>
-                    <li>Conservez vos identifiants en lieu sûr</li>
-                    <li>Vous pouvez modifier votre mot de passe depuis votre tableau de bord</li>
-                    <li>Si vous avez oublié vos identifiants, contactez l'administrateur</li>
+                    <li>Connectez-vous à U-Connect avec vos identifiants</li>
+                    <li>Complétez votre profil d'association</li>
+                    <li>Modifiez votre mot de passe pour plus de sécurité</li>
+                    <li>Explorez les fonctionnalités disponibles pour votre organisation</li>
                 </ul>
             </div>
 
-            <!-- Call to Action -->
             <div class="button-container">
-                <a href="https://u-connect.app" class="btn">Accéder à U-Connect</a>
+                <a href="https://uconnect.vibecro.com" class="btn" style="display: inline-block;">Se Connecter à U-Connect</a>
             </div>
 
-            <!-- Additional Info -->
-            <p style="font-size: 14px; color: #666; margin-top: 30px;">
-                Si vous avez des questions ou besoin d'aide, n'hésitez pas à contacter notre équipe de support à <strong>support@u-connect.com</strong>.
+            <p style="font-size: 14px; color: #666; margin-top: 30px; line-height: 1.8;">
+                Des questions? Notre équipe support est là pour vous aider à <strong>support@u-connect.org</strong>
             </p>
         </div>
 
-        <!-- Footer -->
         <div class="footer">
-            <p>&copy; 2026 U-Connect. Tous droits réservés.</p>
+            <p><strong>U-Connect</strong> - Ensemble pour un monde meilleur</p>
+            <p>&copy; {{ date('Y') }} U-Connect. Tous droits réservés.</p>
             <p>Cet email a été envoyé automatiquement. Veuillez ne pas y répondre directement.</p>
         </div>
     </div>

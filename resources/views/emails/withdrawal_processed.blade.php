@@ -1,77 +1,71 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retrait Approuvé</title>
     <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #28a745; color: white; padding: 20px; border-radius: 5px 5px 0 0; }
-        .header h1 { margin: 0; }
-        .content { background: #f9f9f9; padding: 20px; border: 1px solid #ddd; }
-        .info-box { background: white; padding: 15px; border-left: 4px solid #28a745; margin: 15px 0; }
-        .info-box .label { font-weight: bold; color: #28a745; }
-        .info-box .value { color: #333; margin-top: 5px; }
-        .amount-box { background: #e8f5e9; padding: 20px; border-radius: 5px; margin: 15px 0; text-align: center; }
-        .amount-box .label { font-size: 12px; color: #666; }
-        .amount-box .amount { font-size: 32px; font-weight: bold; color: #28a745; }
-        .timeline { margin: 20px 0; padding: 15px; background: #e3f2fd; border-radius: 5px; }
-        .timeline-item { margin: 10px 0; padding-left: 20px; border-left: 2px solid #007bff; }
-        .timeline-item strong { color: #007bff; }
-        .footer { text-align: center; padding: 20px; font-size: 12px; color: #666; border-top: 1px solid #ddd; }
-        .success-badge { background: #28a745; color: white; padding: 5px 10px; border-radius: 3px; font-size: 12px; font-weight: bold; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 50px 30px; text-align: center; }
+        .header h1 { margin: 0; font-size: 32px; font-weight: 700; }
+        .content { padding: 40px 30px; }
+        .details-box { background: linear-gradient(135deg, #f8f9fa 0%, #f0f4f8 100%); border: 1px solid #e0e7ff; border-radius: 8px; padding: 20px; margin: 20px 0; }
+        .detail-item { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e0e0e0; }
+        .detail-label { font-size: 12px; font-weight: 700; color: #28a745; text-transform: uppercase; }
+        .detail-value { font-size: 15px; color: #333; margin-top: 4px; }
+        .amount-box { background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 25px; margin: 20px 0; text-align: center; }
+        .amount-label { font-size: 12px; font-weight: 700; color: #28a745; text-transform: uppercase; }
+        .amount-value { font-size: 32px; font-weight: 700; color: #28a745; margin-top: 8px; }
+        .timeline { margin: 20px 0; }
+        .timeline-item { margin: 15px 0; padding: 15px; background: #e8f5e9; border-left: 4px solid #28a745; border-radius: 4px; }
+        .timeline-item strong { color: #28a745; }
+        .info-box { background-color: #f0f8ff; border-left: 4px solid #007B80; padding: 15px; margin: 20px 0; border-radius: 4px; }
+        .text-muted { color: #999; font-size: 14px; }
+        .footer { background-color: #f8f9fa; padding: 25px 30px; text-align: center; border-top: 1px solid #e0e0e0; font-size: 12px; color: #999; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>✅ Demande de Retrait Approuvée!</h1>
+            <h1>✅ Retrait Approuvé!</h1>
+            <p>Bonne Nouvelle</p>
         </div>
+        
         <div class="content">
             <p>Bonjour {{ $user->name }},</p>
             
-            <p style="font-size: 16px; color: #28a745; font-weight: bold;">
-                🎉 Bonne nouvelle! Votre demande de retrait a été approuvée par notre équipe!
-            </p>
-
-            <div class="info-box">
-                <div class="label">📋 ID Demande</div>
-                <div class="value">#{{ $withdrawalRequest->id }}</div>
-            </div>
-
+            <p style="font-size: 16px; color: #28a745; font-weight: 600; margin: 20px 0;">Votre demande de retrait a été approuvée! 🎉</p>
+            
             <div class="amount-box">
-                <div class="label">Montant à Recevoir</div>
-                <div class="amount">{{ number_format($withdrawalRequest->withdrawal_amount, 2, ',', ' ') }} €</div>
+                <div class="amount-label">💰 Montant à Recevoir</div>
+                <div class="amount-value">{{ number_format($withdrawalRequest->withdrawal_amount, 2, ',', ' ') }} €</div>
+                <div class="text-muted" style="margin-top: 10px;">Montant Collecté: {{ number_format($withdrawalRequest->original_amount, 2, ',', ' ') }} € | Frais: {{ number_format($withdrawalRequest->platform_fee, 2, ',', ' ') }} €</div>
             </div>
-
-            <div class="info-box">
-                <div class="label">💳 Compte Bancaire</div>
-                <div class="value">{{ $withdrawalRequest->account_holder_name ?? 'Non spécifié' }}</div>
+            
+            <div class="details-box">
+                <div class="detail-item">
+                    <div class="detail-label">🔑 ID Demande</div>
+                    <div class="detail-value">#{{ $withdrawalRequest->id }}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">💳 Compte Bancaire</div>
+                    <div class="detail-value">{{ $withdrawalRequest->account_holder_name ?? 'Non spécifié' }}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">📍 IBAN</div>
+                    <div class="detail-value">{{ $withdrawalRequest->iban ?? 'Non spécifié' }}</div>
+                </div>
+                @if($withdrawalRequest->transaction_reference)
+                <div class="detail-item" style="border-bottom: none;">
+                    <div class="detail-label">🔍 Référence de Transaction</div>
+                    <div class="detail-value">{{ $withdrawalRequest->transaction_reference }}</div>
+                </div>
+                @endif
             </div>
-
-            <div class="info-box">
-                <div class="label">📍 IBAN</div>
-                <div class="value">{{ $withdrawalRequest->iban ?? 'Non spécifié' }}</div>
-            </div>
-
-            @if($withdrawalRequest->transaction_reference)
-            <div class="info-box">
-                <div class="label">🔍 Référence de Transaction</div>
-                <div class="value">{{ $withdrawalRequest->transaction_reference }}</div>
-            </div>
-            @endif
-
-            <div class="info-box">
-                <div class="label">💰 Montant Original Collecté</div>
-                <div class="value">{{ number_format($withdrawalRequest->original_amount, 2, ',', ' ') }} €</div>
-            </div>
-
-            <div class="info-box">
-                <div class="label">📊 Frais Plateforme (10%)</div>
-                <div class="value">{{ number_format($withdrawalRequest->platform_fee, 2, ',', ' ') }} €</div>
-            </div>
-
+            
             <h3 style="color: #28a745; margin-top: 30px;">📅 Calendrier de Traitement</h3>
-
+            
             <div class="timeline">
                 <div class="timeline-item">
                     <strong>✅ Aujourd'hui</strong> - Votre demande a été approuvée
@@ -80,19 +74,17 @@
                     <strong>🏦 24 à 48h</strong> - Virement sur votre compte bancaire
                 </div>
             </div>
-
-            <p style="margin-top: 30px; color: #666;">
-                <strong>Note:</strong> Le délai de virement dépend de votre banque. Veuillez vérifier que vos coordonnées bancaires sont correctes.
-            </p>
-
-            <p style="margin-top: 20px; padding: 15px; background: #f0f0f0; border-radius: 5px; font-size: 12px;">
-                Si vous avez des questions, vous pouvez nous contacter en répondant à cet email.
-            </p>
-
-            <div class="footer">
-                <p>U-Connect • Plateforme de Financement Participatif</p>
-                <p>© {{ date('Y') }} Tous droits réservés</p>
+            
+            <div class="info-box">
+                <strong>💡 Conseil</strong>
+                <p>Le délai de virement dépend de votre banque. Veuillez vérifier que vos coordonnées bancaires sont correctes.</p>
             </div>
+            
+            <p class="text-muted">Si vous avez des questions, n'hésitez pas à nous contacter.</p>
+        </div>
+        
+        <div class="footer">
+            <p>© {{ date('Y') }} U-Connect. Tous droits réservés.</p>
         </div>
     </div>
 </body>

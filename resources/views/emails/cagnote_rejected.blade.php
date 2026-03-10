@@ -1,48 +1,71 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cagnote Refusée</title>
     <style>
-        body { font-family: Arial, sans-serif; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #dc3545; color: white; padding: 20px; text-align: center; }
-        .content { padding: 20px; background-color: #f9f9f9; }
-        .footer { background-color: #f5f5f5; padding: 10px; text-align: center; font-size: 12px; }
-        .button { background-color: #dc3545; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 20px 0; }
-        ul { list-style: none; padding: 0; }
-        li { padding: 8px 0; border-bottom: 1px solid #eee; }
-        .reason-box { background-color: #f8d7da; border-left: 4px solid #dc3545; padding: 15px; margin: 20px 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; padding: 50px 30px; text-align: center; }
+        .header h1 { margin: 0; font-size: 32px; font-weight: 700; }
+        .content { padding: 40px 30px; }
+        .details-box { background: linear-gradient(135deg, #f8f9fa 0%, #f0f4f8 100%); border: 1px solid #e0e7ff; border-radius: 8px; padding: 20px; margin: 20px 0; }
+        .detail-item { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e0e0e0; }
+        .detail-label { font-size: 12px; font-weight: 700; color: #dc3545; text-transform: uppercase; }
+        .detail-value { font-size: 15px; color: #333; margin-top: 4px; }
+        .reason-box { background-color: #f8d7da; border-left: 4px solid #dc3545; padding: 20px; margin: 20px 0; border-radius: 4px; }
+        .reason-box strong { color: #721c24; }
+        .next-steps { background-color: #f0f8ff; border-left: 4px solid #007B80; padding: 20px; margin: 20px 0; border-radius: 4px; }
+        .text-muted { color: #999; font-size: 14px; }
+        .btn { display: inline-block; padding: 12px 35px; background-color: #dc3545; color: white; text-decoration: none; border-radius: 6px; font-weight: 700; margin-top: 20px; }
+        .footer { background-color: #f8f9fa; padding: 25px 30px; text-align: center; border-top: 1px solid #e0e0e0; font-size: 12px; color: #999; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h2>Cagnote Refusée - Modifications Demandées</h2>
+            <h1>❌ Cagnote Refusée</h1>
+            <p>Modifications Demandées</p>
         </div>
+        
         <div class="content">
             <p>Bonjour {{ $association->name }},</p>
-            <p>Après analyse de votre cagnote, nous ne pouvons pas la valider pour le moment.</p>
+            
+            <p>Après un examen approfondi de votre cagnote, notre équipe n'a pas pu la valider pour le moment.</p>
+            
+            <div class="details-box">
+                <div class="detail-item">
+                    <div class="detail-label">📝 Titre</div>
+                    <div class="detail-value">{{ $cagnote->title }}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">💰 Objectif</div>
+                    <div class="detail-value">{{ $cagnote->goal_amount }} EUR</div>
+                </div>
+            </div>
             
             <div class="reason-box">
-                <h4>Raison du rejet:</h4>
+                <strong>📋 Raison du Rejet:</strong>
                 <p>{{ $reason }}</p>
             </div>
             
-            <h3>Votre cagnote:</h3>
-            <ul>
-                <li><strong>Titre:</strong> {{ $cagnote->title }}</li>
-                <li><strong>Catégorie:</strong> {{ $cagnote->category }}</li>
-                <li><strong>Objectif:</strong> {{ $cagnote->objective_amount }}€</li>
-            </ul>
+            <div class="next-steps">
+                <strong>✨ Prochaines Étapes</strong>
+                <ul style="padding-left: 20px; margin: 10px 0;">
+                    <li>Modifiez votre cagnote selon les commentaires</li>
+                    <li>Soumettez la version mise à jour</li>
+                    <li>Nous réexaminerons rapidement votre demande</li>
+                </ul>
+            </div>
             
-            <h3>Que faire maintenant?</h3>
-            <p>Vous pouvez modifier votre cagnote en fonction du feedback ci-dessus et la soumettre à nouveau. Notre équipe réexaminera votre demande dès réception de la version mise à jour.</p>
+            <p class="text-muted">Si vous avez des questions ou besoin de clarifications, n'hésitez pas à nous contacter.</p>
             
-            <p>Si vous avez des questions, n'hésitez pas à nous contacter.</p>
-            
-            <p>Cordialement,<br><strong>L'équipe U-Connect</strong></p>
+            <a href="https://uconnect.vibecro.com" class="btn">Modifier Votre Cagnote</a>
         </div>
+        
         <div class="footer">
-            <p>&copy; 2026 U-Connect. Tous droits réservés.</p>
+            <p>© {{ date('Y') }} U-Connect. Tous droits réservés.</p>
         </div>
     </div>
 </body>
