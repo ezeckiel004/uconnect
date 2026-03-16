@@ -340,7 +340,7 @@ class AuthController extends Controller
                 'email' => 'required|email|unique:users,email',
                 'phone_number' => 'nullable|string',
                 'description' => 'nullable|string',
-                'category' => 'required|in:Nourriture,Eau,Infrastructure,Santé,Sociale,SOS',
+                'category' => 'required|in:Nourriture,Eau,Infrastructure,Santé,Éducation,SOS',
                 'country' => 'required|string|max:255',
                 'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             ]);

@@ -20,7 +20,7 @@ return new class extends Migration
                 $query->where('type', 'association')
                     ->where('category', '');
             })
-            ->update(['category' => 'Sociale']);
+            ->update(['category' => 'Éducation']);
 
         // Log the number of updated records
         $updated = DB::table('users')
@@ -29,7 +29,7 @@ return new class extends Migration
             ->where('category', '<>', '')
             ->count();
 
-        \Illuminate\Support\Facades\Log::info('Migration: Updated ' . $updated . ' associations with default category (Sociale)');
+        \Illuminate\Support\Facades\Log::info('Migration: Updated ' . $updated . ' associations with default category (Éducation)');
     }
 
     /**
@@ -37,10 +37,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Reverse: set category to NULL for associations that have 'Sociale' as default
+        // Reverse: set category to NULL for associations that have 'Éducation' as default
         DB::table('users')
             ->where('type', 'association')
-            ->where('category', 'Sociale')
+            ->where('category', 'Éducation')
             ->update(['category' => null]);
     }
 };

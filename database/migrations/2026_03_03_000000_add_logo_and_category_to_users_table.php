@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             $table->string('logo_path')->nullable()->after('description')->comment('Path to association logo');
-            $table->enum('category', ['Nourriture', 'Eau', 'Infrastructure', 'Santé', 'Sociale', 'SOS'])->nullable()->after('logo_path')->comment('Association category');
+            $table->enum('category', ['Nourriture', 'Eau', 'Infrastructure', 'Santé', 'Éducation', 'SOS'])->nullable()->after('logo_path')->comment('Association category');
         });
     }
 
