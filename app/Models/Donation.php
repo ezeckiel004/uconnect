@@ -14,6 +14,8 @@ class Donation extends Model
         'user_id',
         'cagnote_id',
         'amount',
+        'fees',
+        'total_amount',
         'currency',
         'stripe_payment_intent_id',
         'stripe_charge_id',
@@ -31,6 +33,8 @@ class Donation extends Model
 
     protected $casts = [
         'amount' => 'decimal:2',
+        'fees' => 'decimal:2',
+        'total_amount' => 'decimal:2',
         'is_anonymous' => 'boolean',
         'metadata' => 'array',
         'paid_at' => 'datetime',

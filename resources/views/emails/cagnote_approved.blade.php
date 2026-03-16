@@ -162,7 +162,7 @@
             </div>
             
             <p style="margin-top: 30px; line-height: 1.8;">
-                Besoin d'aide? Contactez-nous à support@u-connect.org
+                Besoin d'aide? Contactez-nous à contact@u-connect.org
             </p>
         </div>
         

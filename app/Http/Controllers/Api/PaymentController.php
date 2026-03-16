@@ -20,6 +20,27 @@ class PaymentController extends Controller
     }
 
     /**
+     * Calculate Stripe transaction fees based on donation amount
+     * Base: 0.35€ + percentage that varies by amount tier
+     */
+    private function calculateFees($amount)
+    {
+        $percentage = 1.4; // Default for amounts < 50€
+        
+        if ($amount >= 500) {
+            $percentage = 2.0;
+        } elseif ($amount >= 100) {
+            $percentage = 1.8;
+        } elseif ($amount >= 50) {
+            $percentage = 1.6;
+        }
+        
+        $fees = 0.35 + ($amount * $percentage / 100);
+        
+        return round($fees, 2);
+    }
+
+    /**
      * Create a payment intent for a donation
      * POST /api/payments/intent
      */
@@ -38,16 +59,23 @@ class PaymentController extends Controller
             $cagnote = Cagnote::findOrFail($validated['cagnote_id']);
             $user = $request->user();
 
-            // Amount in cents
-            $amountInCents = (int) ($validated['amount'] * 100);
+            // Calculate fees
+            $donationAmount = (float) $validated['amount'];
+            $fees = $this->calculateFees($donationAmount);
+            $totalAmount = $donationAmount + $fees;
+
+            // Amount in cents for Stripe (total with fees)
+            $amountInCents = (int) ($totalAmount * 100);
 
             Log::info('Creating payment intent', [
                 'cagnote_id' => $validated['cagnote_id'],
-                'amount' => $validated['amount'],
+                'donation_amount' => $donationAmount,
+                'fees' => $fees,
+                'total_amount' => $totalAmount,
                 'user_id' => $user?->id,
             ]);
 
-            // Create payment intent
+            // Create payment intent with total amount (including fees)
             $paymentIntent = PaymentIntent::create([
                 'amount' => $amountInCents,
                 'currency' => 'eur',
@@ -58,16 +86,22 @@ class PaymentController extends Controller
                     'donor_email' => $validated['donor_email'],
                     'donor_name' => $validated['donor_name'] ?? '',
                     'is_anonymous' => $validated['is_anonymous'] ? 'true' : 'false',
+                    'donation_amount' => (string) $donationAmount,
+                    'fees_amount' => (string) $fees,
+                    'total_amount' => (string) $totalAmount,
                 ],
                 'receipt_email' => $validated['donor_email'],
                 'description' => "Donation to: {$cagnote->title}",
             ]);
 
             // Create donation record in status pending
+            // Store both the donation amount and the fees
             $donation = Donation::create([
                 'user_id' => $user?->id,
                 'cagnote_id' => $validated['cagnote_id'],
-                'amount' => $validated['amount'],
+                'amount' => $donationAmount, // Amount the user wants to donate
+                'fees' => $fees, // Transaction fees
+                'total_amount' => $totalAmount, // Total charged (donation + fees)
                 'currency' => 'EUR',
                 'stripe_payment_intent_id' => $paymentIntent->id,
                 'status' => 'pending',
@@ -84,6 +118,9 @@ class PaymentController extends Controller
             Log::info('Payment intent created', [
                 'donation_id' => $donation->id,
                 'intent_id' => $paymentIntent->id,
+                'donation_amount' => $donationAmount,
+                'fees' => $fees,
+                'total_amount' => $totalAmount,
             ]);
 
             return response()->json([
@@ -93,7 +130,9 @@ class PaymentController extends Controller
                     'client_secret' => $paymentIntent->client_secret,
                     'payment_intent_id' => $paymentIntent->id,
                     'donation_id' => $donation->id,
-                    'amount' => $validated['amount'],
+                    'amount' => $donationAmount,
+                    'fees' => $fees,
+                    'total_amount' => $totalAmount,
                     'currency' => 'EUR',
                 ],
             ], Response::HTTP_OK);

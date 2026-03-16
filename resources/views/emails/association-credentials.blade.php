@@ -184,7 +184,7 @@
             </div>
 
             <p style="font-size: 14px; color: #666; margin-top: 30px; line-height: 1.8;">
-                Des questions? Notre équipe support est là pour vous aider à <strong>support@u-connect.org</strong>
+                Des questions? Notre équipe support est là pour vous aider à <strong>contact@u-connect.org</strong>
             </p>
         </div>
 

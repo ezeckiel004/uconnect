@@ -102,7 +102,7 @@
             </div>
             
             <p style="margin-top: 30px; line-height: 1.8;">
-                Si vous n'avez pas effectué ce changement, <strong>contactez immédiatement</strong> notre support à support@u-connect.org
+                Si vous n'avez pas effectué ce changement, <strong>contactez immédiatement</strong> notre support à contact@u-connect.org
             </p>
         </div>
         
