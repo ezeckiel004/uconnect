@@ -341,7 +341,7 @@ class AuthController extends Controller
                 'phone_number' => 'nullable|string',
                 'description' => 'nullable|string',
                 'category' => 'nullable|in:Nourriture,Eau,Infrastructure,Santé,Éducation,SOS',
-                'country' => 'required|string|max:255',
+                'country' => 'nullable|string|max:255',
                 'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             ]);
 
@@ -366,7 +366,7 @@ class AuthController extends Controller
                 'phone_number' => $validated['phone_number'] ?? null,
                 'description' => $validated['description'] ?? null,
                 'category' => $validated['category'] ?? null,
-                'country' => $validated['country'],
+                'country' => $validated['country'] ?? null,
                 'logo_path' => $logoPath,
                 // code and password will be set by admin later
             ]);
