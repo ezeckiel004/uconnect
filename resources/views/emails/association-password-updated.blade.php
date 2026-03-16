@@ -254,7 +254,7 @@
 
             <!-- Additional Info -->
             <p style="font-size: 14px; color: #666; margin-top: 30px;">
-                Si vous n'avez pas demandé cette modification ou si vous avez des questions, contactez immédiatement notre équipe de support à <strong>support@u-connect.com</strong>.
+                Si vous n'avez pas demandé cette modification ou si vous avez des questions, contactez immédiatement notre équipe de support à <strong>contact@u-connect.org</strong>.
             </p>
         </div>
 
