@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Donation;
 use App\Models\Cagnote;
+use App\Mail\DonationReceipt;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Stripe\Stripe;
 use Stripe\PaymentIntent;
 use Stripe\Exception\ApiErrorException;
@@ -90,7 +92,6 @@ class PaymentController extends Controller
                     'fees_amount' => (string) $fees,
                     'total_amount' => (string) $totalAmount,
                 ],
-                'receipt_email' => $validated['donor_email'],
                 'description' => "Donation to: {$cagnote->title}",
             ]);
 
@@ -192,6 +193,20 @@ class PaymentController extends Controller
                     'donation_id' => $donation->id,
                     'charge_id' => $chargeId,
                 ]);
+
+                // Send custom receipt email
+                try {
+                    Mail::to($donation->donor_email)->send(new DonationReceipt($donation));
+                    Log::info('Receipt email sent', [
+                        'donation_id' => $donation->id,
+                        'email' => $donation->donor_email,
+                    ]);
+                } catch (\Exception $e) {
+                    Log::error('Failed to send receipt email: ' . $e->getMessage(), [
+                        'donation_id' => $donation->id,
+                    ]);
+                    // Don't fail the response if email fails
+                }
 
                 return response()->json([
                     'success' => true,
@@ -404,6 +419,19 @@ class PaymentController extends Controller
                 'donation_id' => $donation->id,
                 'amount' => $donation->amount,
             ]);
+
+            // Send custom receipt email
+            try {
+                Mail::to($donation->donor_email)->send(new DonationReceipt($donation));
+                Log::info('Receipt email sent via webhook', [
+                    'donation_id' => $donation->id,
+                    'email' => $donation->donor_email,
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Failed to send receipt email: ' . $e->getMessage(), [
+                    'donation_id' => $donation->id,
+                ]);
+            }
         }
     }
 
