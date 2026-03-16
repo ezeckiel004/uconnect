@@ -340,7 +340,7 @@ class AuthController extends Controller
                 'email' => 'required|email|unique:users,email',
                 'phone_number' => 'nullable|string',
                 'description' => 'nullable|string',
-                'category' => 'required|in:Nourriture,Eau,Infrastructure,Santé,Éducation,SOS',
+                'category' => 'nullable|in:Nourriture,Eau,Infrastructure,Santé,Éducation,SOS',
                 'country' => 'required|string|max:255',
                 'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             ]);
@@ -365,7 +365,7 @@ class AuthController extends Controller
                 'type' => 'association',
                 'phone_number' => $validated['phone_number'] ?? null,
                 'description' => $validated['description'] ?? null,
-                'category' => $validated['category'],
+                'category' => $validated['category'] ?? null,
                 'country' => $validated['country'],
                 'logo_path' => $logoPath,
                 // code and password will be set by admin later
