@@ -46,9 +46,20 @@ class ForumPost extends Model
             ->withTimestamps();
     }
 
+    public function viewedByUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'forum_post_views', 'post_id', 'user_id')
+            ->withTimestamps();
+    }
+
     public function isLikedBy(User $user): bool
     {
         return $this->likedByUsers()->where('user_id', $user->id)->exists();
+    }
+
+    public function isViewedBy(User $user): bool
+    {
+        return $this->viewedByUsers()->where('user_id', $user->id)->exists();
     }
 
     /**
@@ -67,5 +78,19 @@ class ForumPost extends Model
         $result = $this->isLikedBy($user);
         Log::info('📝 isLikedByCurrentUser() - PostID: ' . $this->id . ', UserID: ' . $user->id . ', Result: ' . ($result ? 'TRUE' : 'FALSE'));
         return $result;
+    }
+
+    /**
+     * Check if the currently authenticated user has viewed this post
+     */
+    public function isViewedByCurrentUser(): bool
+    {
+        $user = Auth::user();
+        
+        if (!$user) {
+            return false;
+        }
+        
+        return $this->isViewedBy($user);
     }
 }
