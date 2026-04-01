@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Stripe\Stripe;
 use Stripe\PaymentIntent;
+use Stripe\Account;
 use Stripe\Exception\ApiErrorException;
 
 class PaymentController extends Controller
@@ -23,22 +24,12 @@ class PaymentController extends Controller
 
     /**
      * Calculate Stripe transaction fees based on donation amount
-     * Base: 0.35€ + percentage that varies by amount tier
+     * Formula: 1.5% of amount + 0.25€
      */
     private function calculateFees($amount)
     {
-        $percentage = 1.4; // Default for amounts < 50€
-        
-        if ($amount >= 500) {
-            $percentage = 2.0;
-        } elseif ($amount >= 100) {
-            $percentage = 1.8;
-        } elseif ($amount >= 50) {
-            $percentage = 1.6;
-        }
-        
-        $fees = 0.35 + ($amount * $percentage / 100);
-        
+        $fees = ($amount * 1.5 / 100) + 0.25;
+
         return round($fees, 2);
     }
 
@@ -61,6 +52,71 @@ class PaymentController extends Controller
             $cagnote = Cagnote::findOrFail($validated['cagnote_id']);
             $user = $request->user();
 
+            $association = $cagnote->user;
+            if (!$association) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Association introuvable pour cette cagnotte.',
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+
+            if (empty($association->stripe_connect_account_id)) {
+                // Backfill legacy associations created before Stripe Connect rollout.
+                $newAccount = Account::create([
+                    'type' => 'express',
+                    'email' => $association->email,
+                    'metadata' => [
+                        'uconnect_user_id' => (string) $association->id,
+                        'uconnect_user_type' => 'association',
+                    ],
+                    'capabilities' => [
+                        'card_payments' => ['requested' => true],
+                        'transfers' => ['requested' => true],
+                    ],
+                ]);
+
+                $association->stripe_connect_account_id = $newAccount->id;
+                $association->stripe_connect_onboarded = (bool) $newAccount->details_submitted;
+                $association->stripe_charges_enabled = (bool) $newAccount->charges_enabled;
+                $association->stripe_payouts_enabled = (bool) $newAccount->payouts_enabled;
+                $association->save();
+            }
+
+            $connectedAccount = Account::retrieve($association->stripe_connect_account_id);
+            $association->stripe_connect_onboarded = (bool) $connectedAccount->details_submitted;
+            $association->stripe_charges_enabled = (bool) $connectedAccount->charges_enabled;
+            $association->stripe_payouts_enabled = (bool) $connectedAccount->payouts_enabled;
+            $association->save();
+
+            $destinationAccount = $association->stripe_connect_account_id;
+
+            if (!(bool) $association->stripe_charges_enabled || !(bool) $association->stripe_payouts_enabled) {
+                $onboardingLink = null;
+                try {
+                    $accountLink = \Stripe\AccountLink::create([
+                        'account' => $destinationAccount,
+                        'refresh_url' => rtrim(config('app.url'), '/') . '/onboarding/refresh',
+                        'return_url' => rtrim(config('app.url'), '/') . '/onboarding/success',
+                        'type' => 'account_onboarding',
+                    ]);
+                    $onboardingLink = $accountLink->url;
+                } catch (\Throwable $_) {
+                    // Ignore temporary account-link generation failure.
+                }
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Le compte Stripe de cette association n est pas encore totalement active.',
+                    'data' => [
+                        'association_id' => $association->id,
+                        'destination_account' => $destinationAccount,
+                        'charges_enabled' => (bool) $association->stripe_charges_enabled,
+                        'payouts_enabled' => (bool) $association->stripe_payouts_enabled,
+                        'onboarding_url' => $onboardingLink,
+                    ],
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+
             // Calculate fees
             $donationAmount = (float) $validated['amount'];
             $fees = $this->calculateFees($donationAmount);
@@ -68,6 +124,7 @@ class PaymentController extends Controller
 
             // Amount in cents for Stripe (total with fees)
             $amountInCents = (int) ($totalAmount * 100);
+            $applicationFeeAmount = (int) round($fees * 100);
 
             Log::info('Creating payment intent', [
                 'cagnote_id' => $validated['cagnote_id'],
@@ -81,6 +138,11 @@ class PaymentController extends Controller
             $paymentIntent = PaymentIntent::create([
                 'amount' => $amountInCents,
                 'currency' => 'eur',
+                'payment_method_types' => ['card'],
+                'transfer_data' => [
+                    'destination' => $destinationAccount,
+                ],
+                'application_fee_amount' => $applicationFeeAmount,
                 'metadata' => [
                     'cagnote_id' => $validated['cagnote_id'],
                     'cagnote_title' => $cagnote->title,
@@ -91,6 +153,8 @@ class PaymentController extends Controller
                     'donation_amount' => (string) $donationAmount,
                     'fees_amount' => (string) $fees,
                     'total_amount' => (string) $totalAmount,
+                    'destination_account' => $destinationAccount,
+                    'application_fee_amount' => (string) $applicationFeeAmount,
                 ],
                 'description' => "Donation to: {$cagnote->title}",
             ]);

@@ -29,6 +29,10 @@ class User extends Authenticatable
         'logo_path',
         'category',
         'country',
+        'stripe_connect_account_id',
+        'stripe_connect_onboarded',
+        'stripe_charges_enabled',
+        'stripe_payouts_enabled',
         'first_login',
     ];
 
@@ -52,6 +56,9 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'stripe_connect_onboarded' => 'boolean',
+            'stripe_charges_enabled' => 'boolean',
+            'stripe_payouts_enabled' => 'boolean',
             'first_login' => 'boolean',
         ];
     }

@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\WithdrawalRequestController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\ConversationController;
 use App\Http\Controllers\Api\MessageController;
+use App\Http\Controllers\Api\StripeConnectController;
 use App\Http\Controllers\ForumPostController;
 use App\Http\Controllers\ForumCommentController;
 use App\Http\Controllers\ForumReplyController;
@@ -197,6 +198,12 @@ Route::prefix('messages')->middleware('auth:api')->group(function () {
 Route::prefix('associations')->group(function () {
     Route::get('/by-country', [AssociationController::class, 'getAssociationsByCountry'])->name('associations.by-country');
     Route::get('/{associationId}/campaigns', [AssociationController::class, 'getAssociationCampaigns'])->name('associations.campaigns');
+});
+
+// Stripe Connect routes for associations
+Route::prefix('associations/stripe')->middleware('auth:api')->group(function () {
+    Route::get('/status', [StripeConnectController::class, 'status'])->name('associations.stripe.status');
+    Route::post('/onboarding-link', [StripeConnectController::class, 'onboardingLink'])->name('associations.stripe.onboarding-link');
 });
 
 // Notifications routes (protected)

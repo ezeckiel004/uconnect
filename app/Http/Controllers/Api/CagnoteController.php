@@ -464,8 +464,20 @@ class CagnoteController extends Controller
     public function getApprovedCagnotesByCategory($category): \Illuminate\Http\JsonResponse
     {
         try {
+            $resolvedCategory = $this->resolveCategoryValue($category);
+
+            if ($resolvedCategory === null) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Categorie inconnue',
+                    'data' => [],
+                    'count' => 0,
+                    'category' => $category,
+                ], Response::HTTP_OK);
+            }
+
             $cagnotes = Cagnote::where('publication_status', 'approved')
-                ->where('category', $category)
+                ->where('category', $resolvedCategory)
                 ->with('user')
                 ->orderBy('created_at', 'desc')
                 ->get();
@@ -475,7 +487,7 @@ class CagnoteController extends Controller
                 'message' => 'Cagnotes approuvées récupérées avec succès',
                 'data' => CagnoteResource::collection($cagnotes),
                 'count' => count($cagnotes),
-                'category' => $category
+                'category' => $resolvedCategory
             ], Response::HTTP_OK);
 
         } catch (\Exception $e) {
@@ -486,5 +498,34 @@ class CagnoteController extends Controller
                 'error' => $e->getMessage()
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
+    }
+
+    private function resolveCategoryValue(string $rawCategory): ?string
+    {
+        $normalized = $this->normalizeCategoryValue($rawCategory);
+
+        $categoryMap = [
+            'nourriture' => 'Nourriture',
+            'eau' => 'Eau',
+            'infrastructure' => 'Infrastructure',
+            'sante' => 'Santé',
+            'education' => 'Éducation',
+            'sos' => 'SOS',
+            'environnement' => 'Environnement',
+        ];
+
+        return $categoryMap[$normalized] ?? null;
+    }
+
+    private function normalizeCategoryValue(string $value): string
+    {
+        $value = trim(mb_strtolower($value, 'UTF-8'));
+        $transliterated = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value);
+
+        if ($transliterated !== false) {
+            $value = $transliterated;
+        }
+
+        return preg_replace('/[^a-z0-9]+/', '', $value) ?? '';
     }
 }

@@ -41,6 +41,7 @@ class EventController extends Controller
                 'location' => $request->location,
                 'date' => $request->date,
                 'time' => $request->time,
+                'registration_link' => $request->registration_link,
                 'photos' => $request->photos ?? [],
                 'status' => 'pending',
             ]);

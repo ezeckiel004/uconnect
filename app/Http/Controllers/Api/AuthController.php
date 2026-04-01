@@ -12,6 +12,10 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
+use Stripe\Stripe;
+use Stripe\Account;
+use Stripe\AccountLink;
+use Stripe\Exception\ApiErrorException;
 
 class AuthController extends Controller
 {
@@ -191,6 +195,10 @@ class AuthController extends Controller
                     'logo_path' => $user->logo_path,
                     'category' => $user->category,
                     'country' => $user->country,
+                    'stripe_connect_account_id' => $user->stripe_connect_account_id,
+                    'stripe_connect_onboarded' => (bool) $user->stripe_connect_onboarded,
+                    'stripe_charges_enabled' => (bool) $user->stripe_charges_enabled,
+                    'stripe_payouts_enabled' => (bool) $user->stripe_payouts_enabled,
                     'first_login' => $user->first_login,
                 ]
             ], Response::HTTP_OK);
@@ -371,6 +379,66 @@ class AuthController extends Controller
                 // code and password will be set by admin later
             ]);
 
+            $onboardingUrl = null;
+            $onboardingExpiresAt = null;
+
+            // Create Stripe Connect account at signup (Express) so donations can be routed later.
+            try {
+                Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
+                $account = Account::create([
+                    'type' => 'express',
+                    'email' => $user->email,
+                    'metadata' => [
+                        'uconnect_user_id' => (string) $user->id,
+                        'uconnect_user_type' => 'association',
+                    ],
+                    'capabilities' => [
+                        'card_payments' => ['requested' => true],
+                        'transfers' => ['requested' => true],
+                    ],
+                ]);
+
+                $user->stripe_connect_account_id = $account->id;
+                $user->stripe_connect_onboarded = (bool) $account->details_submitted;
+                $user->stripe_charges_enabled = (bool) $account->charges_enabled;
+                $user->stripe_payouts_enabled = (bool) $account->payouts_enabled;
+                $user->save();
+
+                $refreshUrl = rtrim(config('app.url') ?: 'https://uconnect.app', '/') . '/onboarding/refresh';
+                $returnUrl = rtrim(config('app.url') ?: 'https://uconnect.app', '/') . '/onboarding/success';
+
+                $accountLink = AccountLink::create([
+                    'account' => $account->id,
+                    'refresh_url' => $refreshUrl,
+                    'return_url' => $returnUrl,
+                    'type' => 'account_onboarding',
+                ]);
+
+                $onboardingUrl = $accountLink->url;
+                $onboardingExpiresAt = $accountLink->expires_at;
+            } catch (\Throwable $e) {
+                Log::warning('Stripe Connect provisioning failed during association registration: ' . $e->getMessage(), [
+                    'user_id' => $user->id,
+                ]);
+
+                $user->delete();
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Impossible d\'initialiser Stripe Connect pour cette association. Veuillez reessayer.',
+                    'error' => $e->getMessage(),
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+
+            if (empty($onboardingUrl)) {
+                $user->delete();
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Le lien d\'onboarding Stripe Connect n\'a pas pu etre genere.',
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Inscription réussie. En attente de l\'attribution des identifiants par l\'administrateur.',
@@ -386,6 +454,9 @@ class AuthController extends Controller
                         'category' => $user->category,
                         'country' => $user->country,
                         'logo_path' => $user->logo_path,
+                        'stripe_connect_account_id' => $user->stripe_connect_account_id,
+                        'stripe_onboarding_url' => $onboardingUrl,
+                        'stripe_onboarding_expires_at' => $onboardingExpiresAt,
                     ],
                 ]
             ], Response::HTTP_CREATED);
