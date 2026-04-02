@@ -17,49 +17,87 @@ class AssociationController extends Controller
     public function getAssociationsByCountry(): \Illuminate\Http\JsonResponse
     {
         try {
-            // Get all associations
-            $associations = User::where('type', 'association')
-                ->select('id', 'name', 'country', 'category', 'logo_path', 'phone_number', 'description')
+            $baseUrl = rtrim(request()->getSchemeAndHttpHost(), '/');
+
+            $campaigns = Cagnote::with([
+                    'user:id,name,logo_path,phone_number,description',
+                ])
+                ->where('publication_status', 'approved')
+                ->whereNotNull('location')
+                ->where('location', '!=', '')
+                ->select(
+                    'id',
+                    'user_id',
+                    'title',
+                    'description',
+                    'image_url',
+                    'photos',
+                    'objective_amount',
+                    'collected_amount',
+                    'category',
+                    'location'
+                )
                 ->get();
 
-            // Group by country
             $groupedByCountry = [];
-            foreach ($associations as $association) {
-                $country = $association->country ?? 'Unknown';
-                
+
+            foreach ($campaigns as $campaign) {
+                $association = $campaign->user;
+                if (!$association) {
+                    continue;
+                }
+
+                $country = $campaign->location ?? 'Unknown';
+
                 if (!isset($groupedByCountry[$country])) {
                     $groupedByCountry[$country] = [];
                 }
 
-                // Get campaigns for this association
-                $campaigns = Cagnote::where('user_id', $association->id)
-                    ->select('id', 'title', 'description', 'image_url', 'objective_amount', 'collected_amount', 'category')
-                    ->get()
-                    ->map(function ($campaign) {
-                        return [
-                            'id' => $campaign->id,
-                            'title' => $campaign->title,
-                            'description' => $campaign->description,
-                            'image_url' => $campaign->image_url,
-                            'goal' => $campaign->objective_amount,
-                            'collected' => $campaign->collected_amount,
-                            'category' => $campaign->category,
-                        ];
-                    })
-                    ->toArray();
+                if (!isset($groupedByCountry[$country][$association->id])) {
+                    $logoPath = $association->logo_path;
+                    if ($logoPath && !str_starts_with($logoPath, 'http')) {
+                        $logoPath = $baseUrl . '/' . ltrim($logoPath, '/');
+                    }
 
-                $groupedByCountry[$country][] = [
-                    'id' => $association->id,
-                    'name' => $association->name,
-                    'category' => $association->category,
-                    'logo_path' => $association->logo_path,
-                    'phone_number' => $association->phone_number,
-                    'description' => $association->description,
-                    'campaigns' => $campaigns
+                    $groupedByCountry[$country][$association->id] = [
+                        'id' => $association->id,
+                        'name' => $association->name,
+                        'logo_path' => $logoPath,
+                        'phone_number' => $association->phone_number,
+                        'description' => $association->description,
+                        'campaigns' => [],
+                    ];
+                }
+
+                $imageUrl = $campaign->image_url;
+
+                // Some campaigns store media in `photos` while `image_url` is empty.
+                if (!$imageUrl && !empty($campaign->photos) && is_array($campaign->photos)) {
+                    $firstPhoto = $campaign->photos[0] ?? null;
+                    if (is_string($firstPhoto) && $firstPhoto !== '') {
+                        $imageUrl = $firstPhoto;
+                    }
+                }
+
+                if ($imageUrl && !str_starts_with($imageUrl, 'http')) {
+                    $imageUrl = $baseUrl . '/' . ltrim($imageUrl, '/');
+                }
+
+                $groupedByCountry[$country][$association->id]['campaigns'][] = [
+                    'id' => $campaign->id,
+                    'title' => $campaign->title,
+                    'description' => $campaign->description,
+                    'image_url' => $imageUrl,
+                    'goal' => $campaign->objective_amount,
+                    'collected' => $campaign->collected_amount,
+                    'category' => $campaign->category,
                 ];
             }
 
-            // Count campaigns per country for markers
+            foreach ($groupedByCountry as $country => $associations) {
+                $groupedByCountry[$country] = array_values($associations);
+            }
+
             $countryCampaignCount = [];
             foreach ($groupedByCountry as $country => $assocs) {
                 $total = 0;
