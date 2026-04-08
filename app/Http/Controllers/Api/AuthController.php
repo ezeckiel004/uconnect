@@ -1152,6 +1152,104 @@ class AuthController extends Controller
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
+
+    /**
+     * Get All Donors (Admin only)
+     * GET /api/admin/donors
+     */
+    public function getAllDonors(Request $request): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $admin = $request->user();
+
+            if (!$admin || $admin->type !== 'admin') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Accès non autorisé'
+                ], Response::HTTP_FORBIDDEN);
+            }
+
+            $donors = User::where('type', 'donor')->get([
+                'id',
+                'name',
+                'email',
+                'phone_number',
+                'created_at',
+                'updated_at'
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Liste des donnateurs',
+                'data' => $donors
+            ], Response::HTTP_OK);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération des donnateurs',
+                'error' => $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Delete a User Account (Admin only)
+     * DELETE /api/admin/users/{id}
+     */
+    public function deleteUser(Request $request, $userId): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $admin = $request->user();
+
+            if (!$admin || $admin->type !== 'admin') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Accès non autorisé'
+                ], Response::HTTP_FORBIDDEN);
+            }
+
+            $user = User::findOrFail($userId);
+
+            // Prevent admin from deleting admins
+            if ($user->type === 'admin') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Impossible de supprimer un compte administrateur'
+                ], Response::HTTP_FORBIDDEN);
+            }
+
+            // Store info before deletion for response
+            $userName = $user->name;
+            $userEmail = $user->email;
+            $userType = $user->type;
+
+            // Delete the user
+            $user->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Compte supprimé avec succès',
+                'data' => [
+                    'name' => $userName,
+                    'email' => $userEmail,
+                    'type' => $userType,
+                ]
+            ], Response::HTTP_OK);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Utilisateur non trouvé'
+            ], Response::HTTP_NOT_FOUND);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la suppression du compte',
+                'error' => $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
 }
 
 

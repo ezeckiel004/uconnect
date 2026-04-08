@@ -57,6 +57,8 @@ Route::prefix('auth')->group(function () {
 // Admin routes (authentication required)
 Route::prefix('admin')->middleware('auth:api')->group(function () {
     Route::get('/associations', [AuthController::class, 'getAllAssociations'])->name('admin.associations');
+    Route::get('/donors', [AuthController::class, 'getAllDonors'])->name('admin.donors');
+    Route::delete('/users/{id}', [AuthController::class, 'deleteUser'])->name('admin.users.delete');
     Route::post('/assign-credentials', [AuthController::class, 'assignAssociationCredentials'])->name('admin.assign-credentials');
     Route::post('/update-password', [AuthController::class, 'updateAssociationPassword'])->name('admin.update-password');
 
