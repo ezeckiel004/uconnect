@@ -1250,6 +1250,56 @@ class AuthController extends Controller
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
+
+    public function deleteOwnAccount(Request $request): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $user = $request->user();
+
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Utilisateur non authentifié'
+                ], Response::HTTP_UNAUTHORIZED);
+            }
+
+            // Sécurité : seuls les donateurs peuvent supprimer leur compte eux-mêmes
+            if ($user->type !== 'donor') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cette action est réservée aux donateurs.'
+                ], Response::HTTP_FORBIDDEN);
+            }
+
+            $userInfo = [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+            ];
+
+            // Suppression définitive
+            $user->delete();
+
+            Log::info('✅ Compte utilisateur supprimé par l\'utilisateur lui-même', $userInfo);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Votre compte a été supprimé définitivement.',
+            ], Response::HTTP_OK);
+
+        } catch (\Exception $e) {
+            Log::error('❌ Erreur lors de la suppression du compte', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la suppression du compte',
+                'error' => $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
 }
 
 

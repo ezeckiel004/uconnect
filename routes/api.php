@@ -51,6 +51,7 @@ Route::prefix('auth')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout'])->name('auth.logout');
         Route::post('/refresh', [AuthController::class, 'refreshToken'])->name('auth.refresh');
         Route::post('/change-first-login-password', [AuthController::class, 'changeFirstLoginPassword'])->name('auth.change-first-login-password');
+        Route::delete('/delete-account', [AuthController::class, 'deleteOwnAccount']);
     });
 });
 
