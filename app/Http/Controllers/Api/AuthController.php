@@ -1264,7 +1264,7 @@ class AuthController extends Controller
             }
 
             // Sécurité : seuls les donateurs peuvent supprimer leur compte eux-mêmes
-            if ($user->type !== 'donor') {
+            if (!in_array($user->type, ['donor', 'association'])) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Cette action est réservée aux donateurs.'
