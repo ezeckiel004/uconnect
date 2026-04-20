@@ -388,6 +388,10 @@ class AuthController extends Controller
                 $account = Account::create([
                     'type' => 'express',
                     'email' => $user->email,
+                    'controller' => [
+        'losses' => ['payments' => 'application'],   // ← ta plateforme assume les pertes
+        'fees' => ['payer' => 'application'],
+    ],
                     'metadata' => [
                         'uconnect_user_id' => (string) $user->id,
                         'uconnect_user_type' => 'association',
