@@ -386,26 +386,17 @@ class AuthController extends Controller
             try {
                 Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
                 $account = Account::create([
-        // ✅ SUPPRIME complètement la ligne 'type' => 'express',
-        'email' => $user->email,
-
-        // ✅ Nouvelle façon obligatoire (controller)
-        'controller' => [
-            'losses' => ['payments' => 'application'],     // Ta plateforme assume les pertes
-            'fees'   => ['payer' => 'application'],        // Ta plateforme paie les frais Stripe
-            'stripe_dashboard' => ['type' => 'express'],   // C’est ça qui remplace 'type' => 'express'
-        ],
-
-        'metadata' => [
-            'uconnect_user_id' => (string) $user->id,
-            'uconnect_user_type' => 'association',
-        ],
-
-        'capabilities' => [
-            'card_payments' => ['requested' => true],
-            'transfers'      => ['requested' => true],
-        ],
-    ]);
+                    'type' => 'standard',
+                    'email' => $user->email,
+                    'metadata' => [
+                        'uconnect_user_id' => (string) $user->id,
+                        'uconnect_user_type' => 'association',
+                    ],
+                    'capabilities' => [
+                        'card_payments' => ['requested' => true],
+                        'transfers'      => ['requested' => true],
+                    ],
+                ]);
 
                 $user->stripe_connect_account_id = $account->id;
                 $user->stripe_connect_onboarded = (bool) $account->details_submitted;

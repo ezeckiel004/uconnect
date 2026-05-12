@@ -34,7 +34,7 @@ class StripeConnectController extends Controller
         try {
             if (empty($user->stripe_connect_account_id)) {
                 $account = Account::create([
-                    'type' => 'express',
+                    'type' => 'standard',
                     'email' => $user->email,
                     'metadata' => [
                         'uconnect_user_id' => (string) $user->id,

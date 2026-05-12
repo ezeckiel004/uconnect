@@ -63,7 +63,7 @@ class PaymentController extends Controller
             if (empty($association->stripe_connect_account_id)) {
                 // Backfill legacy associations created before Stripe Connect rollout.
                 $newAccount = Account::create([
-                    'type' => 'express',
+                    'type' => 'standard',
                     'email' => $association->email,
                     'metadata' => [
                         'uconnect_user_id' => (string) $association->id,
